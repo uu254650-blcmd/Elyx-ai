@@ -4,9 +4,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ELYX AI Assistant</title>
+  <title>ELYX AI</title>
+
   <style>
-    * { box-sizing: border-box; }
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       margin: 0;
       min-height: 100vh;
@@ -17,6 +21,7 @@
       justify-content: center;
       padding: 20px;
     }
+
     .app {
       width: 100%;
       max-width: 650px;
@@ -29,29 +34,34 @@
       background: #0b1927;
       box-shadow: 0 0 30px #00d9ff12;
     }
+
     header {
       text-align: center;
       padding: 22px;
       background: #0d2232;
       border-bottom: 1px solid #16485a;
     }
+
     header h1 {
       margin: 0;
       color: #32e6ff;
       letter-spacing: 5px;
       font-size: 30px;
     }
+
     header p {
       margin: 8px 0 0;
       color: #91b7c7;
       font-size: 13px;
     }
+
     #chat {
       flex: 1;
       padding: 18px;
       overflow-y: auto;
       min-height: 300px;
     }
+
     .message {
       margin: 12px 0;
       padding: 12px 15px;
@@ -60,17 +70,20 @@
       overflow-wrap: anywhere;
       white-space: pre-wrap;
     }
+
     .bot {
       background: #122b3a;
       border-left: 3px solid #32e6ff;
       margin-right: 25px;
     }
+
     .user {
       background: #123c50;
       border-right: 3px solid #32e6ff;
       margin-left: 25px;
       text-align: right;
     }
+
     .input-area {
       display: flex;
       gap: 8px;
@@ -78,6 +91,7 @@
       border-top: 1px solid #16485a;
       background: #0d2232;
     }
+
     input {
       flex: 1;
       min-width: 0;
@@ -89,6 +103,7 @@
       font-size: 16px;
       outline: none;
     }
+
     button {
       border: none;
       border-radius: 10px;
@@ -98,7 +113,12 @@
       font-weight: bold;
       cursor: pointer;
     }
-    button:active { opacity: .7; }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: wait;
+    }
+
     footer {
       text-align: center;
       color: #7896a5;
@@ -107,6 +127,7 @@
     }
   </style>
 </head>
+
 <body>
   <main class="app">
     <header>
@@ -115,27 +136,33 @@
     </header>
 
     <div id="chat" aria-live="polite">
-      <div class="message bot">
-        Assalam-o-Alaikum! I am ELYX.
+      <div class="message bot">Assalam-o-Alaikum! I am ELYX.
 
-        میں آپ کا ذاتی AI اسسٹنٹ ہوں۔ مجھ سے بات کریں!
-      </div>
+میں آپ کا ذاتی AI اسسٹنٹ ہوں۔ مجھ سے بات کریں!</div>
     </div>
 
     <form class="input-area" id="chatForm">
-      <input id="userInput" type="text"
+      <input
+        id="userInput"
+        type="text"
         placeholder="Message ELYX..."
-        autocomplete="off" required>
-      <button type="submit">Send</button>
+        autocomplete="off"
+        required
+      >
+      <button id="sendButton" type="submit">Send</button>
     </form>
 
-    <footer>ELYX AI • Initial Prototype</footer>
+    <footer>ELYX AI • Powered by Gemini</footer>
   </main>
 
   <script>
+    const ELYX_BACKEND =
+      "https://elyx-ai-backend.uu254650.workers.dev/";
+
     const chat = document.getElementById("chat");
     const form = document.getElementById("chatForm");
     const input = document.getElementById("userInput");
+    const sendButton = document.getElementById("sendButton");
 
     function addMessage(text, type) {
       const message = document.createElement("div");
@@ -143,37 +170,38 @@
       message.textContent = text;
       chat.appendChild(message);
       chat.scrollTop = chat.scrollHeight;
+      return message;
     }
 
-    function getReply(text) {
-      const q = text.toLowerCase().trim();
+    async function askELYX(message) {
+      const response = await fetch(ELYX_BACKEND, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          message: message
+        })
+      });
 
-      if (/^(hi|hello|hey)\b/.test(q)) {
-        return "Hello! I am ELYX. How can I help you?";
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.details?.error?.message ||
+          data.error ||
+          "AI سے جواب حاصل نہیں ہو سکا۔"
+        );
       }
 
-      if (q.includes("assalam") || q.includes("salam")) {
-        return "Wa Alaikum Assalam! میں آپ کی کیا مدد کروں؟";
+      if (!data.reply) {
+        throw new Error("ELYX کو جواب نہیں ملا۔");
       }
 
-      if (q.includes("who are you") || q.includes("your name")) {
-        return "I am ELYX, your personal AI assistant.";
-      }
-
-      if (q.includes("وقت") || q.includes("time")) {
-        return "ابھی وقت ہے: " +
-          new Date().toLocaleTimeString();
-      }
-
-      if (q.includes("date") || q.includes("تاریخ")) {
-        return "آج کی تاریخ: " +
-          new Date().toLocaleDateString();
-      }
-
-      return "میں ELYX ہوں۔ ابھی میرا AI کنکشن تیار نہیں ہے۔ اگلے مرحلے میں ہم مجھے Gemini AI سے جوڑیں گے۔";
+      return data.reply;
     }
 
-    form.addEventListener("submit", function(event) {
+    form.addEventListener("submit", async function(event) {
       event.preventDefault();
 
       const text = input.value.trim();
@@ -181,28 +209,27 @@
 
       addMessage(text, "user");
       input.value = "";
+      input.disabled = true;
+      sendButton.disabled = true;
+      sendButton.textContent = "...";
 
-      setTimeout(function() {
-        addMessage(getReply(text), "bot");
-      }, 300);
+      const thinking = addMessage("ELYX سوچ رہا ہے...", "bot");
+
+      try {
+        const reply = await askELYX(text);
+        thinking.textContent = reply;
+      } catch (error) {
+        thinking.textContent =
+          "معاف کریں، ابھی AI سے رابطہ نہیں ہو سکا۔ دوبارہ کوشش کریں۔";
+        console.error("ELYX error:", error);
+      } finally {
+        input.disabled = false;
+        sendButton.disabled = false;
+        sendButton.textContent = "Send";
+        input.focus();
+        chat.scrollTop = chat.scrollHeight;
+      }
     });
   </script>
 </body>
-
-<script>
-const ELYX_BACKEND =
-
-async function askELYX(message) {
-  const response = await fetch(ELYX_BACKEND, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({ message: message })
-  });
-
-  const data = await response.json();
-  return data.reply || "معاف کریں، جواب نہیں ملا۔";
-} "https://elyx-ai-backend.uu254650.workers.dev/";
-</script>
-</html>.
+</html>
