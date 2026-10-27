@@ -190,6 +190,19 @@
 </body>
 
 <script>
-const ELYX_BACKEND = "https://elyx-ai-backend.uu254650.workers.dev/";
+const ELYX_BACKEND =
+
+async function askELYX(message) {
+  const response = await fetch(ELYX_BACKEND, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ message: message })
+  });
+
+  const data = await response.json();
+  return data.reply || "معاف کریں، جواب نہیں ملا۔";
+} "https://elyx-ai-backend.uu254650.workers.dev/";
 </script>
 </html>.
