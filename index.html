@@ -1,0 +1,191 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ELYX AI Assistant</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #07111d;
+      color: #e9fbff;
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      padding: 20px;
+    }
+    .app {
+      width: 100%;
+      max-width: 650px;
+      display: flex;
+      flex-direction: column;
+      min-height: 85vh;
+      border: 1px solid #16485a;
+      border-radius: 18px;
+      overflow: hidden;
+      background: #0b1927;
+      box-shadow: 0 0 30px #00d9ff12;
+    }
+    header {
+      text-align: center;
+      padding: 22px;
+      background: #0d2232;
+      border-bottom: 1px solid #16485a;
+    }
+    header h1 {
+      margin: 0;
+      color: #32e6ff;
+      letter-spacing: 5px;
+      font-size: 30px;
+    }
+    header p {
+      margin: 8px 0 0;
+      color: #91b7c7;
+      font-size: 13px;
+    }
+    #chat {
+      flex: 1;
+      padding: 18px;
+      overflow-y: auto;
+      min-height: 300px;
+    }
+    .message {
+      margin: 12px 0;
+      padding: 12px 15px;
+      border-radius: 12px;
+      line-height: 1.5;
+      overflow-wrap: anywhere;
+      white-space: pre-wrap;
+    }
+    .bot {
+      background: #122b3a;
+      border-left: 3px solid #32e6ff;
+      margin-right: 25px;
+    }
+    .user {
+      background: #123c50;
+      border-right: 3px solid #32e6ff;
+      margin-left: 25px;
+      text-align: right;
+    }
+    .input-area {
+      display: flex;
+      gap: 8px;
+      padding: 14px;
+      border-top: 1px solid #16485a;
+      background: #0d2232;
+    }
+    input {
+      flex: 1;
+      min-width: 0;
+      padding: 13px;
+      border-radius: 10px;
+      border: 1px solid #24556a;
+      background: #07111d;
+      color: white;
+      font-size: 16px;
+      outline: none;
+    }
+    button {
+      border: none;
+      border-radius: 10px;
+      padding: 0 18px;
+      background: #32dff5;
+      color: #06131d;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    button:active { opacity: .7; }
+    footer {
+      text-align: center;
+      color: #7896a5;
+      padding: 10px;
+      font-size: 11px;
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header>
+      <h1>ELYX</h1>
+      <p>YOUR PERSONAL AI ASSISTANT</p>
+    </header>
+
+    <div id="chat" aria-live="polite">
+      <div class="message bot">
+        Assalam-o-Alaikum! I am ELYX.
+
+        میں آپ کا ذاتی AI اسسٹنٹ ہوں۔ مجھ سے بات کریں!
+      </div>
+    </div>
+
+    <form class="input-area" id="chatForm">
+      <input id="userInput" type="text"
+        placeholder="Message ELYX..."
+        autocomplete="off" required>
+      <button type="submit">Send</button>
+    </form>
+
+    <footer>ELYX AI • Initial Prototype</footer>
+  </main>
+
+  <script>
+    const chat = document.getElementById("chat");
+    const form = document.getElementById("chatForm");
+    const input = document.getElementById("userInput");
+
+    function addMessage(text, type) {
+      const message = document.createElement("div");
+      message.className = "message " + type;
+      message.textContent = text;
+      chat.appendChild(message);
+      chat.scrollTop = chat.scrollHeight;
+    }
+
+    function getReply(text) {
+      const q = text.toLowerCase().trim();
+
+      if (/^(hi|hello|hey)\b/.test(q)) {
+        return "Hello! I am ELYX. How can I help you?";
+      }
+
+      if (q.includes("assalam") || q.includes("salam")) {
+        return "Wa Alaikum Assalam! میں آپ کی کیا مدد کروں؟";
+      }
+
+      if (q.includes("who are you") || q.includes("your name")) {
+        return "I am ELYX, your personal AI assistant.";
+      }
+
+      if (q.includes("وقت") || q.includes("time")) {
+        return "ابھی وقت ہے: " +
+          new Date().toLocaleTimeString();
+      }
+
+      if (q.includes("date") || q.includes("تاریخ")) {
+        return "آج کی تاریخ: " +
+          new Date().toLocaleDateString();
+      }
+
+      return "میں ELYX ہوں۔ ابھی میرا AI کنکشن تیار نہیں ہے۔ اگلے مرحلے میں ہم مجھے Gemini AI سے جوڑیں گے۔";
+    }
+
+    form.addEventListener("submit", function(event) {
+      event.preventDefault();
+
+      const text = input.value.trim();
+      if (!text) return;
+
+      addMessage(text, "user");
+      input.value = "";
+
+      setTimeout(function() {
+        addMessage(getReply(text), "bot");
+      }, 300);
+    });
+  </script>
+</body>
+</html>
