@@ -4,12 +4,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ELYX AI</title>
+  <meta name="theme-color" content="#07111d">
+  <title>ELYX AI - Personal Assistant</title>
 
   <style>
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
@@ -19,15 +18,15 @@
       font-family: Arial, sans-serif;
       display: flex;
       justify-content: center;
-      padding: 20px;
+      padding: 12px;
     }
 
     .app {
       width: 100%;
-      max-width: 650px;
+      max-width: 700px;
+      min-height: 90vh;
       display: flex;
       flex-direction: column;
-      min-height: 85vh;
       border: 1px solid #16485a;
       border-radius: 18px;
       overflow: hidden;
@@ -37,7 +36,7 @@
 
     header {
       text-align: center;
-      padding: 22px;
+      padding: 20px;
       background: #0d2232;
       border-bottom: 1px solid #16485a;
     }
@@ -55,9 +54,15 @@
       font-size: 13px;
     }
 
+    .status {
+      color: #63e6a5;
+      font-size: 11px;
+      margin-top: 8px;
+    }
+
     #chat {
       flex: 1;
-      padding: 18px;
+      padding: 16px;
       overflow-y: auto;
       min-height: 300px;
     }
@@ -66,7 +71,7 @@
       margin: 12px 0;
       padding: 12px 15px;
       border-radius: 12px;
-      line-height: 1.5;
+      line-height: 1.6;
       overflow-wrap: anywhere;
       white-space: pre-wrap;
     }
@@ -74,13 +79,13 @@
     .bot {
       background: #122b3a;
       border-left: 3px solid #32e6ff;
-      margin-right: 25px;
+      margin-right: 15px;
     }
 
     .user {
       background: #123c50;
       border-right: 3px solid #32e6ff;
-      margin-left: 25px;
+      margin-left: 15px;
       text-align: right;
     }
 
@@ -107,7 +112,7 @@
     button {
       border: none;
       border-radius: 10px;
-      padding: 0 18px;
+      padding: 12px 18px;
       background: #32dff5;
       color: #06131d;
       font-weight: bold;
@@ -119,27 +124,45 @@
       cursor: wait;
     }
 
+    .clear-button {
+      background: transparent;
+      color: #91b7c7;
+      border: 1px solid #24556a;
+      margin-top: 8px;
+      font-size: 12px;
+    }
+
     footer {
       text-align: center;
       color: #7896a5;
       padding: 10px;
       font-size: 11px;
     }
+
+    @media (max-width: 480px) {
+      body { padding: 0; }
+      .app {
+        min-height: 100vh;
+        border-radius: 0;
+      }
+      header { padding: 16px; }
+    }
   </style>
 </head>
 
 <body>
   <main class="app">
+
     <header>
       <h1>ELYX</h1>
       <p>YOUR PERSONAL AI ASSISTANT</p>
+      <div class="status">● AI SYSTEM</div>
+      <button class="clear-button" id="clearButton">
+        Clear Conversation Memory
+      </button>
     </header>
 
-    <div id="chat" aria-live="polite">
-      <div class="message bot">Assalam-o-Alaikum! I am ELYX.
-
-میں آپ کا ذاتی AI اسسٹنٹ ہوں۔ مجھ سے بات کریں!</div>
-    </div>
+    <div id="chat" aria-live="polite"></div>
 
     <form class="input-area" id="chatForm">
       <input
@@ -147,6 +170,7 @@
         type="text"
         placeholder="Message ELYX..."
         autocomplete="off"
+        maxlength="10000"
         required
       >
       <button id="sendButton" type="submit">Send</button>
@@ -159,18 +183,76 @@
     const ELYX_BACKEND =
       "https://elyx-ai-backend.uu254650.workers.dev/";
 
+    const STORAGE_KEY = "elyx_conversation_v1";
+
     const chat = document.getElementById("chat");
     const form = document.getElementById("chatForm");
     const input = document.getElementById("userInput");
     const sendButton = document.getElementById("sendButton");
+    const clearButton = document.getElementById("clearButton");
+
+    let conversation = [];
+
+    function saveConversation() {
+      try {
+        localStorage.setItem(
+          STORAGE_KEY,
+          JSON.stringify(conversation)
+        );
+      } catch (error) {
+        console.error("Memory save error:", error);
+      }
+    }
+
+    function loadConversation() {
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY);
+
+        if (!saved) return;
+
+        const parsed = JSON.parse(saved);
+
+        if (!Array.isArray(parsed)) return;
+
+        conversation = parsed
+          .filter(item =>
+            item &&
+            ["user", "model"].includes(item.role) &&
+            typeof item.text === "string"
+          )
+          .slice(-16);
+
+      } catch (error) {
+        conversation = [];
+        console.error("Memory load error:", error);
+      }
+    }
 
     function addMessage(text, type) {
       const message = document.createElement("div");
       message.className = "message " + type;
       message.textContent = text;
+
       chat.appendChild(message);
       chat.scrollTop = chat.scrollHeight;
+
       return message;
+    }
+
+    function displayWelcome() {
+      chat.innerHTML = "";
+
+      addMessage(
+        "Assalam-o-Alaikum! I am ELYX.\n\nمیں آپ کا ذاتی AI اسسٹنٹ ہوں۔ مجھ سے بات کریں!",
+        "bot"
+      );
+
+      for (const item of conversation) {
+        addMessage(
+          item.text,
+          item.role === "user" ? "user" : "bot"
+        );
+      }
     }
 
     async function askELYX(message) {
@@ -180,7 +262,8 @@
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          message: message
+          message: message,
+          history: conversation.slice(-16)
         })
       });
 
@@ -188,13 +271,11 @@
 
       if (!response.ok) {
         throw new Error(
-          data.details?.error?.message ||
-          data.error ||
-          "AI سے جواب حاصل نہیں ہو سکا۔"
+          data.reply || "AI سے جواب حاصل نہیں ہو سکا۔"
         );
       }
 
-      if (!data.reply) {
+      if (!data.reply || typeof data.reply !== "string") {
         throw new Error("ELYX کو جواب نہیں ملا۔");
       }
 
@@ -205,9 +286,11 @@
       event.preventDefault();
 
       const text = input.value.trim();
-      if (!text) return;
+
+      if (!text || sendButton.disabled) return;
 
       addMessage(text, "user");
+
       input.value = "";
       input.disabled = true;
       sendButton.disabled = true;
@@ -217,11 +300,27 @@
 
       try {
         const reply = await askELYX(text);
+
         thinking.textContent = reply;
+
+        // Save only successful conversation messages.
+        conversation.push(
+          { role: "user", text: text },
+          { role: "model", text: reply }
+        );
+
+        // Keep the latest 16 messages.
+        conversation = conversation.slice(-16);
+
+        saveConversation();
+
       } catch (error) {
         thinking.textContent =
-          "معاف کریں، ابھی AI سے رابطہ نہیں ہو سکا۔ دوبارہ کوشش کریں۔";
+          "معاف کریں، ابھی جواب حاصل نہیں ہو سکا۔\n" +
+          error.message;
+
         console.error("ELYX error:", error);
+
       } finally {
         input.disabled = false;
         sendButton.disabled = false;
@@ -230,6 +329,25 @@
         chat.scrollTop = chat.scrollHeight;
       }
     });
+
+    clearButton.addEventListener("click", function() {
+      if (!confirm("کیا آپ واقعی اپنی گفتگو کی Memory ختم کرنا چاہتے ہیں؟")) {
+        return;
+      }
+
+      conversation = [];
+
+      try {
+        localStorage.removeItem(STORAGE_KEY);
+      } catch (error) {
+        console.error(error);
+      }
+
+      displayWelcome();
+    });
+
+    loadConversation();
+    displayWelcome();
   </script>
 </body>
 </html>
