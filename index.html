@@ -2,587 +2,647 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#07111d">
-  <title>ELYX AI - Personal Assistant</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#07111d">
+<title>ELYX AI - Personal Assistant</title>
 
-  <style>
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      margin: 0;
-      min-height: 100vh;
-      background: #07111d;
-      color: #e9fbff;
-      font-family: Arial, sans-serif;
-      display: flex;
-      justify-content: center;
-      padding: 12px;
-    }
-
-    .app {
-      width: 100%;
-      max-width: 700px;
-      min-height: 90vh;
-      display: flex;
-      flex-direction: column;
-      border: 1px solid #16485a;
-      border-radius: 18px;
-      overflow: hidden;
-      background: #0b1927;
-      box-shadow: 0 0 30px #00d9ff12;
-    }
-
-    header {
-      text-align: center;
-      padding: 20px;
-      background: #0d2232;
-      border-bottom: 1px solid #16485a;
-    }
-
-    header h1 {
-      margin: 0;
-      color: #32e6ff;
-      letter-spacing: 5px;
-      font-size: 30px;
-    }
-
-    header p {
-      margin: 8px 0 0;
-      color: #91b7c7;
-      font-size: 13px;
-    }
-
-    .status {
-      color: #63e6a5;
-      font-size: 11px;
-      margin-top: 8px;
-    }
-
-    #chat {
-      flex: 1;
-      padding: 16px;
-      overflow-y: auto;
-      min-height: 300px;
-    }
-
-    .message {
-      margin: 12px 0;
-      padding: 12px 15px;
-      border-radius: 12px;
-      line-height: 1.6;
-      overflow-wrap: anywhere;
-      white-space: pre-wrap;
-    }
-
-    .bot {
-      background: #122b3a;
-      border-left: 3px solid #32e6ff;
-      margin-right: 15px;
-    }
-
-    .user {
-      background: #123c50;
-      border-right: 3px solid #32e6ff;
-      margin-left: 15px;
-      text-align: right;
-    }
-
-    .input-area {
-      display: flex;
-      gap: 8px;
-      padding: 14px;
-      border-top: 1px solid #16485a;
-      background: #0d2232;
-      align-items: center;
-    }
-
-    input {
-      flex: 1;
-      min-width: 0;
-      padding: 13px;
-      border-radius: 10px;
-      border: 1px solid #24556a;
-      background: #07111d;
-      color: white;
-      font-size: 16px;
-      outline: none;
-    }
-
-    button {
-      border: none;
-      border-radius: 10px;
-      padding: 12px 15px;
-      background: #32dff5;
-      color: #06131d;
-      font-weight: bold;
-      cursor: pointer;
-      white-space: nowrap;
-    }
-
-    button:disabled {
-      opacity: 0.6;
-      cursor: wait;
-    }
-
-    .voice-button {
-      background: #16485a;
-      color: #e9fbff;
-      border: 1px solid #32dff5;
-      padding: 12px;
-    }
-
-    .voice-button.active {
-      background: #e64b5d;
-      color: white;
-      border-color: #e64b5d;
-    }
-
-    .clear-button {
-      background: transparent;
-      color: #91b7c7;
-      border: 1px solid #24556a;
-      margin-top: 8px;
-      font-size: 12px;
-    }
-
-    footer {
-      text-align: center;
-      color: #7896a5;
-      padding: 10px;
-      font-size: 11px;
-    }
-
-    @media (max-width: 480px) {
-      body {
-        padding: 0;
-      }
-
-      .app {
-        min-height: 100vh;
-        border-radius: 0;
-      }
-
-      header {
-        padding: 16px;
-      }
-
-      .input-area {
-        gap: 6px;
-        padding: 10px;
-      }
-
-      .input-area input {
-        padding: 12px 8px;
-      }
-
-      .input-area button {
-        padding: 11px 10px;
-        font-size: 13px;
-      }
-    }
-  </style>
+<style>
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:#07111d;color:#e9fbff;font-family:Arial,sans-serif;display:flex;justify-content:center;padding:12px}
+.app{width:100%;max-width:700px;min-height:90vh;display:flex;flex-direction:column;border:1px solid #16485a;border-radius:18px;overflow:hidden;background:#0b1927;box-shadow:0 0 30px #00d9ff12}
+header{text-align:center;padding:20px;background:#0d2232;border-bottom:1px solid #16485a}
+header h1{margin:0;color:#32e6ff;letter-spacing:5px;font-size:30px}
+header p{margin:8px 0 0;color:#91b7c7;font-size:13px}
+.status{color:#63e6a5;font-size:11px;margin-top:8px}
+#chat{flex:1;padding:16px;overflow-y:auto;min-height:300px}
+.message{margin:12px 0;padding:12px 15px;border-radius:12px;line-height:1.6;overflow-wrap:anywhere;white-space:pre-wrap}
+.bot{background:#122b3a;border-left:3px solid #32e6ff;margin-right:15px}
+.user{background:#123c50;border-right:3px solid #32e6ff;margin-left:15px;text-align:right}
+.input-area{display:flex;gap:8px;padding:14px;border-top:1px solid #16485a;background:#0d2232;align-items:center}
+input{flex:1;min-width:0;padding:13px;border-radius:10px;border:1px solid #24556a;background:#07111d;color:white;font-size:16px;outline:none}
+button{border:none;border-radius:10px;padding:12px 15px;background:#32dff5;color:#06131d;font-weight:bold;cursor:pointer;white-space:nowrap}
+button:disabled{opacity:.5;cursor:wait}
+.voice-button{background:#16485a;color:#e9fbff;border:1px solid #32dff5;padding:13px}
+.voice-button.active{background:#e64b5d;color:white;border-color:#e64b5d}
+.clear-button{background:transparent;color:#91b7c7;border:1px solid #24556a;margin-top:8px;font-size:12px}
+.top-actions{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-top:10px}
+.history-panel{display:none;text-align:left;padding:12px;background:#0b1927;border:1px solid #24556a;border-radius:10px;margin-top:12px;max-height:220px;overflow-y:auto}
+.history-item{display:block;width:100%;text-align:left;margin:5px 0;background:#122b3a;color:#e9fbff;border:1px solid #24556a;white-space:normal;overflow-wrap:anywhere}
+.history-item.selected{border-color:#32e6ff}
+.history-empty{color:#91b7c7;font-size:13px;text-align:center;padding:10px}
+.voice-area{text-align:center;padding:12px;background:#0d2232}
+.voice-main{min-width:220px;font-size:15px;padding:15px 22px}
+footer{text-align:center;color:#7896a5;padding:10px;font-size:11px}
+@media(max-width:480px){
+body{padding:0}.app{min-height:100vh;border-radius:0}header{padding:16px}
+.input-area{gap:6px;padding:10px}.input-area input{padding:12px 8px}
+.input-area button{padding:11px 10px;font-size:13px}
+}
+</style>
 </head>
 
 <body>
-  <main class="app">
+<main class="app">
 
-    <header>
-      <h1>ELYX</h1>
-      <p>YOUR PERSONAL AI ASSISTANT</p>
-      <div class="status" id="systemStatus">● AI SYSTEM</div>
+<header>
+<h1>ELYX</h1>
+<p>YOUR PERSONAL AI ASSISTANT</p>
+<div class="status" id="systemStatus">● AI SYSTEM</div>
 
-      <button class="clear-button" id="clearButton">
-        Clear Conversation Memory
-      </button>
-    </header>
+<div class="top-actions">
+<button class="clear-button" id="newChatButton">+ New Chat</button>
+<button class="clear-button" id="historyButton">Chat History</button>
+<button class="clear-button" id="clearButton">Clear All Memory</button>
+</div>
 
-    <div id="chat" aria-live="polite"></div>
+<div class="history-panel" id="historyPanel"></div>
+</header>
 
-    <form class="input-area" id="chatForm">
+<div id="chat" aria-live="polite"></div>
 
-      <input
-        id="userInput"
-        type="text"
-        placeholder="Message ELYX..."
-        autocomplete="off"
-        maxlength="10000"
-        required
-      >
+<form class="input-area" id="chatForm">
+<input id="userInput" type="text" placeholder="Message ELYX..." autocomplete="off" maxlength="10000" required>
+<button class="voice-button" id="languageButton" type="button">اردو</button>
+<button id="sendButton" type="submit">Send</button>
+</form>
 
-      <button
-        class="voice-button"
-        id="languageButton"
-        type="button"
-        title="Change recognition language"
-      >اردو</button>
+<div class="voice-area">
+<button class="voice-button voice-main" id="voiceButton" type="button">
+🎙️ Start Voice Conversation
+</button>
+</div>
 
-      <button
-        class="voice-button"
-        id="micButton"
-        type="button"
-        title="Speak to ELYX"
-      >🎤</button>
+<footer>ELYX AI • Powered by Gemini</footer>
+</main>
 
-      <button id="sendButton" type="submit">
-        Send
-      </button>
+<script>
+"use strict";
 
-    </form>
+const ELYX_BACKEND = "https://elyx-ai-backend.uu254650.workers.dev/";
 
-    <div style="text-align:center;padding:8px;background:#0d2232;">
-      <button
-        class="voice-button"
-        id="speakButton"
-        type="button"
-      >🔊 Speak Last Reply</button>
-    </div>
+const CHATS_KEY = "elyx_chats_v1";
+const ACTIVE_CHAT_KEY = "elyx_active_chat_v1";
+const OLD_STORAGE_KEY = "elyx_conversation_v1";
 
-    <footer>ELYX AI • Powered by Gemini</footer>
-  </main>
+const chat = document.getElementById("chat");
+const form = document.getElementById("chatForm");
+const input = document.getElementById("userInput");
+const sendButton = document.getElementById("sendButton");
+const clearButton = document.getElementById("clearButton");
+const newChatButton = document.getElementById("newChatButton");
+const historyButton = document.getElementById("historyButton");
+const historyPanel = document.getElementById("historyPanel");
+const voiceButton = document.getElementById("voiceButton");
+const languageButton = document.getElementById("languageButton");
+const systemStatus = document.getElementById("systemStatus");
 
-  <script>
-    const ELYX_BACKEND =
-      "https://elyx-ai-backend.uu254650.workers.dev/";
+let chats = [];
+let activeChatId = null;
+let lastReply = "";
 
-    const STORAGE_KEY = "elyx_conversation_v1";
+let voiceMode = false;
+let isListening = false;
+let isProcessing = false;
+let isSpeaking = false;
+let recognitionFailed = false;
+let speechLanguage = "ur-PK";
 
-    const chat = document.getElementById("chat");
-    const form = document.getElementById("chatForm");
-    const input = document.getElementById("userInput");
-    const sendButton = document.getElementById("sendButton");
-    const clearButton = document.getElementById("clearButton");
-    const micButton = document.getElementById("micButton");
-    const languageButton = document.getElementById("languageButton");
-    const speakButton = document.getElementById("speakButton");
-    const systemStatus = document.getElementById("systemStatus");
+const SpeechRecognition =
+  window.SpeechRecognition || window.webkitSpeechRecognition;
 
-    let conversation = [];
-    let lastReply = "";
+let recognition = null;
 
-    // Speech recognition setup
-    const SpeechRecognition =
-      window.SpeechRecognition ||
-      window.webkitSpeechRecognition;
+function activeChat() {
+  return chats.find(item => item.id === activeChatId);
+}
 
-    let recognition = null;
-    let isListening = false;
-    let speechLanguage = "ur-PK";
+function setStatus(message) {
+  systemStatus.textContent = "● " + message;
+}
 
-    if (SpeechRecognition) {
-      recognition = new SpeechRecognition();
+function createChat(messages = []) {
+  const firstUser = messages.find(item => item.role === "user");
 
-      recognition.continuous = false;
-      recognition.interimResults = false;
-      recognition.maxAlternatives = 1;
+  return {
+    id: String(Date.now()) + String(Math.floor(Math.random() * 10000)),
+    title: firstUser ? firstUser.text.slice(0, 35) : "New Chat",
+    messages: messages.slice(-16),
+    createdAt: Date.now()
+  };
+}
 
-      recognition.lang = speechLanguage;
+function saveChats() {
+  try {
+    localStorage.setItem(CHATS_KEY, JSON.stringify(chats));
+    localStorage.setItem(ACTIVE_CHAT_KEY, activeChatId || "");
+  } catch (error) {
+    console.error("Chat save error:", error);
+    addMessage("Chat save نہیں ہو سکی۔ فون کی storage چیک کریں۔", "bot");
+  }
+}
 
-      recognition.onstart = function() {
-        isListening = true;
-        micButton.classList.add("active");
-        micButton.textContent = "⏹";
-        systemStatus.textContent = "● LISTENING";
-      };
+function loadChats() {
+  try {
+    const saved = localStorage.getItem(CHATS_KEY);
 
-      recognition.onresult = function(event) {
-        const transcript =
-          event.results[0][0].transcript;
+    if (saved) {
+      const parsed = JSON.parse(saved);
 
-        input.value = transcript;
-        input.focus();
-      };
-
-      recognition.onerror = function(event) {
-        let errorMessage = "Microphone error.";
-
-        if (event.error === "not-allowed") {
-          errorMessage =
-            "Microphone permission denied. Allow microphone access in Chrome.";
-        } else if (event.error === "no-speech") {
-          errorMessage = "No speech detected. Please try again.";
-        } else if (event.error === "network") {
-          errorMessage = "Speech recognition needs an internet connection.";
-        }
-
-        addMessage(errorMessage, "bot");
-      };
-
-      recognition.onend = function() {
-        isListening = false;
-        micButton.classList.remove("active");
-        micButton.textContent = "🎤";
-        systemStatus.textContent = "● AI SYSTEM";
-      };
-    }
-
-    function saveConversation() {
-      try {
-        localStorage.setItem(
-          STORAGE_KEY,
-          JSON.stringify(conversation)
-        );
-      } catch (error) {
-        console.error("Memory save error:", error);
+      if (Array.isArray(parsed)) {
+        chats = parsed.filter(item =>
+          item &&
+          typeof item.id === "string" &&
+          Array.isArray(item.messages)
+        ).map(item => ({
+          id: item.id,
+          title: typeof item.title === "string" ? item.title : "Chat",
+          messages: item.messages.filter(message =>
+            message &&
+            ["user", "model"].includes(message.role) &&
+            typeof message.text === "string"
+          ).slice(-16),
+          createdAt: item.createdAt || Date.now()
+        }));
       }
     }
 
-    function loadConversation() {
-      try {
-        const saved = localStorage.getItem(STORAGE_KEY);
+    // Migrate the previous single-conversation memory.
+    if (chats.length === 0) {
+      const oldSaved = localStorage.getItem(OLD_STORAGE_KEY);
 
-        if (!saved) return;
+      if (oldSaved) {
+        const oldMessages = JSON.parse(oldSaved);
 
-        const parsed = JSON.parse(saved);
-
-        if (!Array.isArray(parsed)) return;
-
-        conversation = parsed
-          .filter(item =>
+        if (Array.isArray(oldMessages)) {
+          const validMessages = oldMessages.filter(item =>
             item &&
             ["user", "model"].includes(item.role) &&
             typeof item.text === "string"
-          )
-          .slice(-16);
+          ).slice(-16);
 
-        const previousReply = [...conversation]
-          .reverse()
-          .find(item => item.role === "model");
-
-        lastReply = previousReply
-          ? previousReply.text
-          : "";
-
-      } catch (error) {
-        conversation = [];
-        lastReply = "";
-        console.error("Memory load error:", error);
+          if (validMessages.length) {
+            chats.push(createChat(validMessages));
+          }
+        }
       }
     }
 
-    function addMessage(text, type) {
-      const message = document.createElement("div");
+    const savedActiveId = localStorage.getItem(ACTIVE_CHAT_KEY);
 
-      message.className = "message " + type;
-      message.textContent = text;
-
-      chat.appendChild(message);
-      chat.scrollTop = chat.scrollHeight;
-
-      return message;
+    if (savedActiveId && chats.some(item => item.id === savedActiveId)) {
+      activeChatId = savedActiveId;
+    } else if (chats.length) {
+      activeChatId = chats[0].id;
     }
 
-    function displayWelcome() {
-      chat.innerHTML = "";
-
-      addMessage(
-        "Assalam-o-Alaikum! I am ELYX.\n\nمیں آپ کا ذاتی AI اسسٹنٹ ہوں۔ مجھ سے بات کریں!",
-        "bot"
-      );
-
-      for (const item of conversation) {
-        addMessage(
-          item.text,
-          item.role === "user" ? "user" : "bot"
-        );
-      }
+    if (!activeChat()) {
+      const firstChat = createChat();
+      chats.push(firstChat);
+      activeChatId = firstChat.id;
     }
 
-    async function askELYX(message) {
-      const response = await fetch(ELYX_BACKEND, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          message: message,
-          history: conversation.slice(-16)
-        })
-      });
+    saveChats();
 
-      const data = await response.json();
+  } catch (error) {
+    console.error("Chat loading error:", error);
+    chats = [createChat()];
+    activeChatId = chats[0].id;
+    saveChats();
+  }
+}
 
-      if (!response.ok) {
-        throw new Error(
-          data.reply || "AI could not answer."
-        );
-      }
+function addMessage(text, type) {
+  const message = document.createElement("div");
+  message.className = "message " + type;
+  message.textContent = text;
+  chat.appendChild(message);
+  chat.scrollTop = chat.scrollHeight;
+  return message;
+}
 
-      if (!data.reply || typeof data.reply !== "string") {
-        throw new Error("ELYX did not receive a valid reply.");
-      }
+function displayChat() {
+  chat.innerHTML = "";
+  lastReply = "";
 
-      return data.reply;
+  const current = activeChat();
+  if (!current) return;
+
+  addMessage(
+    "Assalam-o-Alaikum! I am ELYX.\n\nمیں آپ کا ذاتی AI اسسٹنٹ ہوں۔ مجھ سے بات کریں!",
+    "bot"
+  );
+
+  for (const item of current.messages) {
+    addMessage(item.text, item.role === "user" ? "user" : "bot");
+
+    if (item.role === "model") {
+      lastReply = item.text;
     }
+  }
 
-    // Send message to ELYX
-    form.addEventListener("submit", async function(event) {
-      event.preventDefault();
+  renderHistory();
+}
 
-      const text = input.value.trim();
+function renderHistory() {
+  historyPanel.innerHTML = "";
 
-      if (!text || sendButton.disabled) return;
+  if (!chats.length) {
+    const empty = document.createElement("div");
+    empty.className = "history-empty";
+    empty.textContent = "No previous chats.";
+    historyPanel.appendChild(empty);
+    return;
+  }
 
-      if (isListening && recognition) {
-        recognition.stop();
-      }
+  [...chats].reverse().forEach(item => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "history-item" +
+      (item.id === activeChatId ? " selected" : "");
 
-      addMessage(text, "user");
+    button.textContent = item.title || "New Chat";
+    button.disabled = isProcessing;
 
-      input.value = "";
-      input.disabled = true;
-      sendButton.disabled = true;
-      sendButton.textContent = "...";
+    button.addEventListener("click", function() {
+      if (isProcessing) return;
 
-      const thinking = addMessage(
-        "ELYX سوچ رہا ہے...",
-        "bot"
-      );
-
-      try {
-        const reply = await askELYX(text);
-
-        thinking.textContent = reply;
-        lastReply = reply;
-
-        conversation.push(
-          { role: "user", text: text },
-          { role: "model", text: reply }
-        );
-
-        conversation = conversation.slice(-16);
-
-        saveConversation();
-
-      } catch (error) {
-        thinking.textContent =
-          "معاف کریں، ابھی جواب حاصل نہیں ہو سکا۔\n" +
-          error.message;
-
-        console.error("ELYX error:", error);
-
-      } finally {
-        input.disabled = false;
-        sendButton.disabled = false;
-        sendButton.textContent = "Send";
-        input.focus();
-        chat.scrollTop = chat.scrollHeight;
-      }
+      stopVoiceMode();
+      activeChatId = item.id;
+      saveChats();
+      displayChat();
+      historyPanel.style.display = "none";
     });
 
-    // Microphone button
-    micButton.addEventListener("click", function() {
-      if (!recognition) {
+    historyPanel.appendChild(button);
+  });
+}
+
+async function askELYX(message, history) {
+  const response = await fetch(ELYX_BACKEND, {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({
+      message: message,
+      history: history.slice(-16)
+    })
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.reply || "AI could not answer.");
+  }
+
+  if (!data.reply || typeof data.reply !== "string") {
+    throw new Error("ELYX did not receive a valid reply.");
+  }
+
+  return data.reply;
+}
+
+/* Voice output */
+
+function speakReply(text) {
+  if (!voiceMode) {
+    isProcessing = false;
+    return;
+  }
+
+  if (!("speechSynthesis" in window)) {
+    setStatus("VOICE OUTPUT NOT SUPPORTED");
+    isProcessing = false;
+    return;
+  }
+
+  window.speechSynthesis.cancel();
+
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.lang = /[\u0600-\u06FF]/.test(text) ? "ur-PK" : "en-US";
+  utterance.rate = 0.95;
+  utterance.pitch = 1;
+
+  utterance.onstart = function() {
+    isSpeaking = true;
+    setStatus("SPEAKING");
+  };
+
+  utterance.onend = function() {
+    isSpeaking = false;
+    isProcessing = false;
+
+    if (voiceMode) {
+      startListening();
+    } else {
+      setStatus("AI SYSTEM");
+    }
+  };
+
+  utterance.onerror = function() {
+    isSpeaking = false;
+    isProcessing = false;
+
+    if (voiceMode) {
+      startListening();
+    } else {
+      setStatus("AI SYSTEM");
+    }
+  };
+
+  window.speechSynthesis.speak(utterance);
+}
+
+/* Voice recognition */
+
+function startListening() {
+  if (!voiceMode || !recognition) return;
+  if (isProcessing || isSpeaking || isListening) return;
+
+  recognitionFailed = false;
+
+  try {
+    recognition.lang = speechLanguage;
+    recognition.start();
+  } catch (error) {
+    console.error("Recognition start error:", error);
+  }
+}
+
+if (SpeechRecognition) {
+  recognition = new SpeechRecognition();
+  recognition.continuous = false;
+  recognition.interimResults = false;
+  recognition.maxAlternatives = 1;
+
+  recognition.onstart = function() {
+    isListening = true;
+    voiceButton.classList.add("active");
+    voiceButton.textContent = "⏹ Stop Voice Conversation";
+    setStatus("LISTENING");
+  };
+
+  recognition.onresult = function(event) {
+    const transcript = event.results[0][0].transcript.trim();
+
+    if (transcript && voiceMode) {
+      sendMessage(transcript, true);
+    }
+  };
+
+  recognition.onerror = function(event) {
+    console.error("Speech recognition error:", event.error);
+
+    if (event.error === "not-allowed" ||
+        event.error === "service-not-allowed" ||
+        event.error === "network") {
+
+      recognitionFailed = true;
+
+      if (event.error === "not-allowed" ||
+          event.error === "service-not-allowed") {
         addMessage(
-          "آپ کا browser Speech Recognition کو support نہیں کرتا۔ Android پر Chrome استعمال کریں۔",
+          "Microphone permission نہیں ملی۔ Chrome میں microphone permission Allow کریں۔",
           "bot"
         );
-        return;
-      }
-
-      if (isListening) {
-        recognition.stop();
-        return;
-      }
-
-      try {
-        recognition.lang = speechLanguage;
-        recognition.start();
-      } catch (error) {
-        addMessage(
-          "Microphone شروع نہیں ہو سکا۔ دوبارہ کوشش کریں۔",
-          "bot"
-        );
-      }
-    });
-
-    // Switch between Urdu and English recognition
-    languageButton.addEventListener("click", function() {
-      if (isListening && recognition) {
-        recognition.stop();
-      }
-
-      if (speechLanguage === "ur-PK") {
-        speechLanguage = "en-US";
-        languageButton.textContent = "EN";
       } else {
-        speechLanguage = "ur-PK";
-        languageButton.textContent = "اردو";
-      }
-
-      if (recognition) {
-        recognition.lang = speechLanguage;
-      }
-    });
-
-    // Speak the latest ELYX reply
-    speakButton.addEventListener("click", function() {
-      if (!lastReply) {
         addMessage(
-          "ابھی سنانے کے لیے کوئی جواب موجود نہیں ہے۔",
+          "Voice recognition کے لیے internet connection درکار ہے۔",
           "bot"
         );
-        return;
       }
+    }
+  };
 
-      if (!("speechSynthesis" in window)) {
-        addMessage(
-          "آپ کا browser voice output support نہیں کرتا۔",
-          "bot"
-        );
-        return;
+  recognition.onend = function() {
+    isListening = false;
+
+    if (voiceMode && !isProcessing && !isSpeaking &&
+        !recognitionFailed) {
+      setStatus("GETTING READY");
+      setTimeout(startListening, 600);
+    }
+  };
+}
+
+/* Stop voice conversation */
+
+function stopVoiceMode() {
+  voiceMode = false;
+  recognitionFailed = true;
+
+  if (isListening && recognition) {
+    recognition.stop();
+  }
+
+  if ("speechSynthesis" in window) {
+    window.speechSynthesis.cancel();
+  }
+
+  isListening = false;
+  isSpeaking = false;
+
+  voiceButton.classList.remove("active");
+  voiceButton.textContent = "🎙️ Start Voice Conversation";
+  setStatus("AI SYSTEM");
+}
+
+/* Send message */
+
+async function sendMessage(text, fromVoice) {
+  text = text.trim();
+
+  if (!text || isProcessing) return;
+
+  const targetChat = activeChat();
+  if (!targetChat) return;
+
+  isProcessing = true;
+
+  if (isListening && recognition) {
+    recognition.stop();
+  }
+
+  addMessage(text, "user");
+  input.value = "";
+
+  input.disabled = true;
+  sendButton.disabled = true;
+  newChatButton.disabled = true;
+  historyButton.disabled = true;
+
+  const thinking = addMessage("ELYX سوچ رہا ہے...", "bot");
+  setStatus("THINKING");
+
+  try {
+    const reply = await askELYX(text, targetChat.messages);
+
+    thinking.textContent = reply;
+
+    targetChat.messages.push(
+      {role: "user", text: text},
+      {role: "model", text: reply}
+    );
+
+    targetChat.messages = targetChat.messages.slice(-16);
+
+    if (targetChat.title === "New Chat") {
+      targetChat.title = text.slice(0, 35);
+    }
+
+    saveChats();
+
+    if (targetChat.id === activeChatId) {
+      lastReply = reply;
+      renderHistory();
+    }
+
+    if (fromVoice && voiceMode) {
+      speakReply(reply);
+    } else {
+      isProcessing = false;
+
+      if (voiceMode) {
+        startListening();
+      } else {
+        setStatus("AI SYSTEM");
       }
+    }
 
-      window.speechSynthesis.cancel();
+  } catch (error) {
+    thinking.textContent =
+      "معاف کریں، ابھی جواب حاصل نہیں ہو سکا۔\n" + error.message;
 
-      const utterance =
-        new SpeechSynthesisUtterance(lastReply);
+    console.error("ELYX error:", error);
+    isProcessing = false;
 
-      utterance.lang = /[\u0600-\u06FF]/.test(lastReply)
-        ? "ur-PK"
-        : "en-US";
+    if (voiceMode) {
+      startListening();
+    } else {
+      setStatus("AI SYSTEM");
+    }
 
-      utterance.rate = 0.95;
-      utterance.pitch = 1;
+  } finally {
+    input.disabled = false;
+    sendButton.disabled = false;
+    newChatButton.disabled = false;
+    historyButton.disabled = false;
+    chat.scrollTop = chat.scrollHeight;
+  }
+}
 
-      window.speechSynthesis.speak(utterance);
-    });
+form.addEventListener("submit", function(event) {
+  event.preventDefault();
+  sendMessage(input.value, false);
+});
 
-    // Clear conversation
-    clearButton.addEventListener("click", function() {
-      if (!confirm(
-        "کیا آپ واقعی اپنی گفتگو کی Memory ختم کرنا چاہتے ہیں؟"
-      )) {
-        return;
-      }
+/* New Chat */
 
-      if (isListening && recognition) {
-        recognition.stop();
-      }
+newChatButton.addEventListener("click", function() {
+  if (isProcessing) return;
 
-      if ("speechSynthesis" in window) {
-        window.speechSynthesis.cancel();
-      }
+  stopVoiceMode();
 
-      conversation = [];
-      lastReply = "";
+  const newConversation = createChat();
+  chats.push(newConversation);
+  activeChatId = newConversation.id;
 
-      try {
-        localStorage.removeItem(STORAGE_KEY);
-      } catch (error) {
-        console.error(error);
-      }
+  saveChats();
+  displayChat();
 
-      displayWelcome();
-    });
+  historyPanel.style.display = "none";
+  input.value = "";
+});
 
-    // Initialize ELYX
-    loadConversation();
-    displayWelcome();
+/* Chat History */
 
-  </script>
+historyButton.addEventListener("click", function() {
+  const isVisible = historyPanel.style.display === "block";
+  historyPanel.style.display = isVisible ? "none" : "block";
+  renderHistory();
+});
+
+/* Voice conversation button */
+
+voiceButton.addEventListener("click", function() {
+  if (!recognition) {
+    addMessage(
+      "آپ کا browser Speech Recognition support نہیں کرتا۔ Android Chrome استعمال کریں۔",
+      "bot"
+    );
+    return;
+  }
+
+  if (voiceMode) {
+    stopVoiceMode();
+    isProcessing = false;
+    return;
+  }
+
+  voiceMode = true;
+  recognitionFailed = false;
+
+  voiceButton.classList.add("active");
+  voiceButton.textContent = "⏹ Stop Voice Conversation";
+
+  setStatus("STARTING VOICE");
+  startListening();
+});
+
+/* Language switch */
+
+languageButton.addEventListener("click", function() {
+  if (isListening && recognition) {
+    recognition.stop();
+  }
+
+  if (speechLanguage === "ur-PK") {
+    speechLanguage = "en-US";
+    languageButton.textContent = "EN";
+  } else {
+    speechLanguage = "ur-PK";
+    languageButton.textContent = "اردو";
+  }
+
+  if (recognition) {
+    recognition.lang = speechLanguage;
+  }
+
+  if (voiceMode && !isProcessing && !isSpeaking) {
+    setTimeout(startListening, 700);
+  }
+});
+
+/* Clear all chats */
+
+clearButton.addEventListener("click", function() {
+  if (!confirm("کیا آپ واقعی تمام گفتگو اور Chat History ختم کرنا چاہتے ہیں؟")) {
+    return;
+  }
+
+  stopVoiceMode();
+  isProcessing = false;
+
+  chats = [];
+  const freshChat = createChat();
+  chats.push(freshChat);
+  activeChatId = freshChat.id;
+
+  try {
+    localStorage.removeItem(OLD_STORAGE_KEY);
+  } catch (error) {
+    console.error(error);
+  }
+
+  saveChats();
+  displayChat();
+  historyPanel.style.display = "none";
+});
+
+/* Initialize */
+
+loadChats();
+displayChat();
+
+</script>
 </body>
 </html>
