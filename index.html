@@ -8,7 +8,9 @@
   <title>ELYX AI - Personal Assistant</title>
 
   <style>
-    * { box-sizing: border-box; }
+    * {
+      box-sizing: border-box;
+    }
 
     body {
       margin: 0;
@@ -95,6 +97,7 @@
       padding: 14px;
       border-top: 1px solid #16485a;
       background: #0d2232;
+      align-items: center;
     }
 
     input {
@@ -112,16 +115,30 @@
     button {
       border: none;
       border-radius: 10px;
-      padding: 12px 18px;
+      padding: 12px 15px;
       background: #32dff5;
       color: #06131d;
       font-weight: bold;
       cursor: pointer;
+      white-space: nowrap;
     }
 
     button:disabled {
       opacity: 0.6;
       cursor: wait;
+    }
+
+    .voice-button {
+      background: #16485a;
+      color: #e9fbff;
+      border: 1px solid #32dff5;
+      padding: 12px;
+    }
+
+    .voice-button.active {
+      background: #e64b5d;
+      color: white;
+      border-color: #e64b5d;
     }
 
     .clear-button {
@@ -140,12 +157,32 @@
     }
 
     @media (max-width: 480px) {
-      body { padding: 0; }
+      body {
+        padding: 0;
+      }
+
       .app {
         min-height: 100vh;
         border-radius: 0;
       }
-      header { padding: 16px; }
+
+      header {
+        padding: 16px;
+      }
+
+      .input-area {
+        gap: 6px;
+        padding: 10px;
+      }
+
+      .input-area input {
+        padding: 12px 8px;
+      }
+
+      .input-area button {
+        padding: 11px 10px;
+        font-size: 13px;
+      }
     }
   </style>
 </head>
@@ -156,7 +193,8 @@
     <header>
       <h1>ELYX</h1>
       <p>YOUR PERSONAL AI ASSISTANT</p>
-      <div class="status">● AI SYSTEM</div>
+      <div class="status" id="systemStatus">● AI SYSTEM</div>
+
       <button class="clear-button" id="clearButton">
         Clear Conversation Memory
       </button>
@@ -165,6 +203,7 @@
     <div id="chat" aria-live="polite"></div>
 
     <form class="input-area" id="chatForm">
+
       <input
         id="userInput"
         type="text"
@@ -173,8 +212,34 @@
         maxlength="10000"
         required
       >
-      <button id="sendButton" type="submit">Send</button>
+
+      <button
+        class="voice-button"
+        id="languageButton"
+        type="button"
+        title="Change recognition language"
+      >اردو</button>
+
+      <button
+        class="voice-button"
+        id="micButton"
+        type="button"
+        title="Speak to ELYX"
+      >🎤</button>
+
+      <button id="sendButton" type="submit">
+        Send
+      </button>
+
     </form>
+
+    <div style="text-align:center;padding:8px;background:#0d2232;">
+      <button
+        class="voice-button"
+        id="speakButton"
+        type="button"
+      >🔊 Speak Last Reply</button>
+    </div>
 
     <footer>ELYX AI • Powered by Gemini</footer>
   </main>
@@ -190,8 +255,69 @@
     const input = document.getElementById("userInput");
     const sendButton = document.getElementById("sendButton");
     const clearButton = document.getElementById("clearButton");
+    const micButton = document.getElementById("micButton");
+    const languageButton = document.getElementById("languageButton");
+    const speakButton = document.getElementById("speakButton");
+    const systemStatus = document.getElementById("systemStatus");
 
     let conversation = [];
+    let lastReply = "";
+
+    // Speech recognition setup
+    const SpeechRecognition =
+      window.SpeechRecognition ||
+      window.webkitSpeechRecognition;
+
+    let recognition = null;
+    let isListening = false;
+    let speechLanguage = "ur-PK";
+
+    if (SpeechRecognition) {
+      recognition = new SpeechRecognition();
+
+      recognition.continuous = false;
+      recognition.interimResults = false;
+      recognition.maxAlternatives = 1;
+
+      recognition.lang = speechLanguage;
+
+      recognition.onstart = function() {
+        isListening = true;
+        micButton.classList.add("active");
+        micButton.textContent = "⏹";
+        systemStatus.textContent = "● LISTENING";
+      };
+
+      recognition.onresult = function(event) {
+        const transcript =
+          event.results[0][0].transcript;
+
+        input.value = transcript;
+        input.focus();
+      };
+
+      recognition.onerror = function(event) {
+        let errorMessage = "Microphone error.";
+
+        if (event.error === "not-allowed") {
+          errorMessage =
+            "Microphone permission denied. Allow microphone access in Chrome.";
+        } else if (event.error === "no-speech") {
+          errorMessage = "No speech detected. Please try again.";
+        } else if (event.error === "network") {
+          errorMessage = "Speech recognition needs an internet connection.";
+        }
+
+        addMessage(errorMessage, "bot");
+      };
+
+      recognition.onend = function() {
+        isListening = false;
+        micButton.classList.remove("active");
+        micButton.textContent = "🎤";
+        systemStatus.textContent = "● AI SYSTEM";
+      };
+    }
 
     function saveConversation() {
       try {
@@ -222,14 +348,24 @@
           )
           .slice(-16);
 
+        const previousReply = [...conversation]
+          .reverse()
+          .find(item => item.role === "model");
+
+        lastReply = previousReply
+          ? previousReply.text
+          : "";
+
       } catch (error) {
         conversation = [];
+        lastReply = "";
         console.error("Memory load error:", error);
       }
     }
 
     function addMessage(text, type) {
       const message = document.createElement("div");
+
       message.className = "message " + type;
       message.textContent = text;
 
@@ -271,23 +407,28 @@
 
       if (!response.ok) {
         throw new Error(
-          data.reply || "AI سے جواب حاصل نہیں ہو سکا۔"
+          data.reply || "AI could not answer."
         );
       }
 
       if (!data.reply || typeof data.reply !== "string") {
-        throw new Error("ELYX کو جواب نہیں ملا۔");
+        throw new Error("ELYX did not receive a valid reply.");
       }
 
       return data.reply;
     }
 
+    // Send message to ELYX
     form.addEventListener("submit", async function(event) {
       event.preventDefault();
 
       const text = input.value.trim();
 
       if (!text || sendButton.disabled) return;
+
+      if (isListening && recognition) {
+        recognition.stop();
+      }
 
       addMessage(text, "user");
 
@@ -296,20 +437,22 @@
       sendButton.disabled = true;
       sendButton.textContent = "...";
 
-      const thinking = addMessage("ELYX سوچ رہا ہے...", "bot");
+      const thinking = addMessage(
+        "ELYX سوچ رہا ہے...",
+        "bot"
+      );
 
       try {
         const reply = await askELYX(text);
 
         thinking.textContent = reply;
+        lastReply = reply;
 
-        // Save only successful conversation messages.
         conversation.push(
           { role: "user", text: text },
           { role: "model", text: reply }
         );
 
-        // Keep the latest 16 messages.
         conversation = conversation.slice(-16);
 
         saveConversation();
@@ -330,12 +473,102 @@
       }
     });
 
-    clearButton.addEventListener("click", function() {
-      if (!confirm("کیا آپ واقعی اپنی گفتگو کی Memory ختم کرنا چاہتے ہیں؟")) {
+    // Microphone button
+    micButton.addEventListener("click", function() {
+      if (!recognition) {
+        addMessage(
+          "آپ کا browser Speech Recognition کو support نہیں کرتا۔ Android پر Chrome استعمال کریں۔",
+          "bot"
+        );
         return;
       }
 
+      if (isListening) {
+        recognition.stop();
+        return;
+      }
+
+      try {
+        recognition.lang = speechLanguage;
+        recognition.start();
+      } catch (error) {
+        addMessage(
+          "Microphone شروع نہیں ہو سکا۔ دوبارہ کوشش کریں۔",
+          "bot"
+        );
+      }
+    });
+
+    // Switch between Urdu and English recognition
+    languageButton.addEventListener("click", function() {
+      if (isListening && recognition) {
+        recognition.stop();
+      }
+
+      if (speechLanguage === "ur-PK") {
+        speechLanguage = "en-US";
+        languageButton.textContent = "EN";
+      } else {
+        speechLanguage = "ur-PK";
+        languageButton.textContent = "اردو";
+      }
+
+      if (recognition) {
+        recognition.lang = speechLanguage;
+      }
+    });
+
+    // Speak the latest ELYX reply
+    speakButton.addEventListener("click", function() {
+      if (!lastReply) {
+        addMessage(
+          "ابھی سنانے کے لیے کوئی جواب موجود نہیں ہے۔",
+          "bot"
+        );
+        return;
+      }
+
+      if (!("speechSynthesis" in window)) {
+        addMessage(
+          "آپ کا browser voice output support نہیں کرتا۔",
+          "bot"
+        );
+        return;
+      }
+
+      window.speechSynthesis.cancel();
+
+      const utterance =
+        new SpeechSynthesisUtterance(lastReply);
+
+      utterance.lang = /[\u0600-\u06FF]/.test(lastReply)
+        ? "ur-PK"
+        : "en-US";
+
+      utterance.rate = 0.95;
+      utterance.pitch = 1;
+
+      window.speechSynthesis.speak(utterance);
+    });
+
+    // Clear conversation
+    clearButton.addEventListener("click", function() {
+      if (!confirm(
+        "کیا آپ واقعی اپنی گفتگو کی Memory ختم کرنا چاہتے ہیں؟"
+      )) {
+        return;
+      }
+
+      if (isListening && recognition) {
+        recognition.stop();
+      }
+
+      if ("speechSynthesis" in window) {
+        window.speechSynthesis.cancel();
+      }
+
       conversation = [];
+      lastReply = "";
 
       try {
         localStorage.removeItem(STORAGE_KEY);
@@ -346,8 +579,10 @@
       displayWelcome();
     });
 
+    // Initialize ELYX
     loadConversation();
     displayWelcome();
+
   </script>
 </body>
 </html>
