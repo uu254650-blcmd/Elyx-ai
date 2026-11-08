@@ -3,494 +3,255 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#07111d">
-<title>ELYX AI - Personal Assistant</title>
-
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ELYX AI</title>
 <style>
-*{box-sizing:border-box}
-body{margin:0;min-height:100vh;background:#07111d;color:#e9fbff;font-family:Arial,sans-serif;padding:12px}
-.container{max-width:700px;margin:auto;min-height:95vh;background:#0b1927;border:1px solid #16485a;border-radius:18px;overflow:hidden}
-header{text-align:center;padding:22px;background:#0d2232;border-bottom:1px solid #16485a}
-header h1{margin:0;color:#32e6ff;letter-spacing:5px;font-size:32px}
-header p{color:#91b7c7;font-size:13px}
-.status{color:#63e6a5;font-size:12px}
-main{padding:18px}
-input{width:100%;padding:14px;margin:8px 0;border-radius:9px;border:1px solid #24556a;background:#07111d;color:white;font-size:16px}
-button{padding:12px 16px;border:0;border-radius:9px;background:#32dff5;color:#06131d;font-weight:bold;cursor:pointer;margin:5px}
-button:disabled{opacity:.5}
-.secondary{background:#16485a;color:white;border:1px solid #32dff5}
-.hidden{display:none!important}
-.auth-card{max-width:430px;margin:25px auto;text-align:center}
-.auth-card h2{color:#32e6ff}
-.auth-card p{color:#91b7c7;line-height:1.5}
-.auth-actions{display:flex;justify-content:center;flex-wrap:wrap}
-#chat{min-height:300px;max-height:55vh;overflow-y:auto;padding:10px}
-.message{padding:12px 15px;margin:12px 0;border-radius:12px;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.6}
-.bot{background:#122b3a;border-left:3px solid #32e6ff;margin-right:15px}
-.user{background:#123c50;border-right:3px solid #32e6ff;margin-left:15px;text-align:right}
-.chat-input{display:flex;gap:5px;align-items:center}
-.chat-input input{flex:1;min-width:0}
-.top-actions{display:flex;justify-content:center;flex-wrap:wrap}
-footer{text-align:center;color:#7896a5;padding:12px;font-size:11px}
-.error{color:#ff8585}
-.success{color:#63e6a5}
-@media(max-width:480px){body{padding:0}.container{min-height:100vh;border-radius:0}.chat-input button{padding:10px}}
+body{margin:0;background:#07111d;color:white;font-family:Arial;padding:18px}
+main{max-width:650px;margin:auto}h1{color:#00e5ff}
+input,textarea,button{padding:12px;margin:5px 0;border-radius:9px;border:1px solid #234;background:#102235;color:white}
+input,textarea{width:95%}button{cursor:pointer;background:#087e99}
+#chat{height:42vh;overflow:auto;background:#0d1c2b;padding:12px;border-radius:12px}
+.msg{padding:10px;margin:8px 0;border-radius:10px;background:#173047}
+.user{background:#07536a}
+.hidden{display:none}
 </style>
 </head>
-
 <body>
-<div class="container">
-<header>
+<main>
 <h1>ELYX</h1>
 <p>YOUR PERSONAL AI ASSISTANT</p>
-<div class="status" id="status">● SYSTEM STARTING</div>
-</header>
 
-<!-- LOGIN / SIGN UP -->
-<main id="authScreen">
-<div class="auth-card">
-<h2 id="authTitle">Welcome to ELYX</h2>
-<p id="authDescription">Login or create your personal ELYX account.</p>
+<section id="auth">
+<h3>Login / Sign Up</h3>
+<input id="email" type="email" placeholder="Email">
+<input id="pass" type="password" placeholder="Password">
+<button onclick="signup()">Sign Up</button>
+<button onclick="login()">Login</button>
+<button onclick="resetPass()">Forgot Password</button>
+<p id="status"></p>
+</section>
 
-<form id="authForm">
-<input id="email" type="email" placeholder="Email address" autocomplete="email" required>
-<input id="password" type="password" placeholder="Password" autocomplete="current-password" minlength="6" required>
-<button id="authSubmit" type="submit">Login</button>
-</form>
+<section id="app" class="hidden">
+<p id="welcome"></p>
+<button onclick="logout()">Logout</button>
+<button onclick="newChat()">New Chat</button>
+<button onclick="showHistory()">Chat History</button>
+<button onclick="clearChat()">Clear Chat</button>
+<div id="history" class="hidden"></div>
 
-<div class="auth-actions">
-<button class="secondary" id="switchAuth" type="button">Create Account</button>
-<button class="secondary" id="forgotButton" type="button">Forgot Password?</button>
-</div>
-
-<p id="authMessage"></p>
-</div>
+<div id="chat"></div>
+<textarea id="message" placeholder="Message ELYX..."></textarea>
+<button onclick="send()">Send</button>
+<button onclick="toggleVoice()" id="voiceBtn">Start Voice</button>
+<button onclick="changeLanguage()" id="langBtn">Language: Urdu</button>
+<p id="voiceStatus"></p>
+</section>
 </main>
-
-<!-- EMAIL VERIFICATION -->
-<main id="verifyScreen" class="hidden">
-<div class="auth-card">
-<h2>Verify Your Email</h2>
-<p>ہم نے آپ کے ای میل پر تصدیقی لنک بھیجا ہے۔ اپنا Email چیک کریں، لنک کھولیں، پھر نیچے بٹن دبائیں۔</p>
-<p id="verifyEmail"></p>
-<button id="verifiedButton">I Have Verified My Email</button>
-<button class="secondary" id="resendButton">Resend Verification Email</button>
-<button class="secondary" id="verifyLogout">Logout</button>
-<p id="verifyMessage"></p>
-</div>
-</main>
-
-<!-- CHAT -->
-<main id="chatScreen" class="hidden">
-<div class="top-actions">
-<button class="secondary" id="newChat">+ New Chat</button>
-<button class="secondary" id="clearChat">Clear Chat</button>
-<button class="secondary" id="logoutButton">Logout</button>
-</div>
-
-<p id="accountEmail" style="text-align:center;color:#91b7c7"></p>
-<div id="chat" aria-live="polite"></div>
-
-<form class="chat-input" id="chatForm">
-<input id="messageInput" placeholder="Message ELYX..." maxlength="10000" required>
-<button id="sendButton" type="submit">Send</button>
-</form>
-</main>
-
-<footer>ELYX AI • Powered by Gemini</footer>
-</div>
 
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+import {getAuth,createUserWithEmailAndPassword,signInWithEmailAndPassword,
+sendEmailVerification,sendPasswordResetEmail,signOut,onAuthStateChanged}
+from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
 
-import {
- getAuth,
- createUserWithEmailAndPassword,
- signInWithEmailAndPassword,
- sendEmailVerification,
- sendPasswordResetEmail,
- signOut,
- onAuthStateChanged,
- reload
-} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
-
-/* FIREBASE CONFIG */
-const firebaseConfig = {
- apiKey: "AIzaSyCvenZuBn-GvzyYYgFJB_klaCDmhNGDkqo",
- authDomain: "elyx-6b1d2.firebaseapp.com",
- projectId: "elyx-6b1d2",
- storageBucket: "elyx-6b1d2.firebasestorage.app",
- messagingSenderId: "11661998394",
- appId: "1:11661998394:web:ebba056d7bab6bcb037803"
+const firebaseConfig={
+apiKey:"AIzaSyCvenZuBn-GvzyYYgFJB_klaCDmhNGDkqo",
+authDomain:"elyx-6b1d2.firebaseapp.com",
+projectId:"elyx-6b1d2",
+storageBucket:"elyx-6b1d2.firebasestorage.app",
+messagingSenderId:"11661998394",
+appId:"1:11661998394:web:ebba056d7bab6bcb037803"
 };
 
-/* BACKEND */
-const WORKER_URL = "https://elyx-ai-backend.uu254650.workers.dev/";
+const appFirebase=initializeApp(firebaseConfig);
+const auth=getAuth(appFirebase);
+const WORKER="https://elyx-ai-backend.uu254650.workers.dev/";
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
+let user=null,chats=[],active=0,busy=false;
+let voiceOn=false,lang="ur-PK";
+const Speech=window.SpeechRecognition||window.webkitSpeechRecognition;
+let recognition=null;
 
-let currentUser = null;
-let isSignup = false;
-let chats = [];
-let activeChatId = null;
-let busy = false;
+const $=id=>document.getElementById(id);
+const key=()=> "elyx_chats_"+user.uid;
 
-const $ = id => document.getElementById(id);
-
-function status(message){
- $("status").textContent = "● " + message;
+function save(){
+localStorage.setItem(key(),JSON.stringify(chats));
 }
-
-function showScreen(screen){
- $("authScreen").classList.add("hidden");
- $("verifyScreen").classList.add("hidden");
- $("chatScreen").classList.add("hidden");
- $(screen).classList.remove("hidden");
-}
-
-function authMessage(message, isError = true){
- $("authMessage").textContent = message;
- $("authMessage").className = isError ? "error" : "success";
-}
-
-function verifyMessage(message, isError = true){
- $("verifyMessage").textContent = message;
- $("verifyMessage").className = isError ? "error" : "success";
-}
-
-/* LOGIN / SIGN UP SWITCH */
-$("switchAuth").addEventListener("click", () => {
- isSignup = !isSignup;
-
- $("authTitle").textContent = isSignup ? "Create ELYX Account" : "Welcome to ELYX";
- $("authSubmit").textContent = isSignup ? "Sign Up" : "Login";
- $("switchAuth").textContent = isSignup ? "Already have an account? Login" : "Create Account";
- $("password").autocomplete = isSignup ? "new-password" : "current-password";
- authMessage("");
+function display(){
+$("chat").innerHTML="";
+(chats[active]?.messages||[]).forEach(m=>{
+const d=document.createElement("div");
+d.className="msg "+(m.role==="user"?"user":"");
+d.textContent=m.text;
+$("chat").appendChild(d);
 });
-
-/* LOGIN / SIGN UP */
-$("authForm").addEventListener("submit", async event => {
- event.preventDefault();
-
- const email = $("email").value.trim();
- const password = $("password").value;
-
- $("authSubmit").disabled = true;
- authMessage("Please wait...", false);
-
- try {
-  if(isSignup){
-   const result = await createUserWithEmailAndPassword(auth,email,password);
-   await sendEmailVerification(result.user);
-
-   $("verifyEmail").textContent = email;
-   showScreen("verifyScreen");
-   verifyMessage("Verification email sent. اپنا Inbox چیک کریں۔", false);
-  } else {
-   const result = await signInWithEmailAndPassword(auth,email,password);
-
-   await reload(result.user);
-
-   if(!result.user.emailVerified){
-    $("verifyEmail").textContent = email;
-    showScreen("verifyScreen");
-    verifyMessage("پہلے اپنا Email verify کریں۔");
-   }
-  }
- } catch(error){
-  authMessage(error.message);
- } finally {
-  $("authSubmit").disabled = false;
- }
-});
-
-/* FORGOT PASSWORD */
-$("forgotButton").addEventListener("click", async () => {
- const email = $("email").value.trim();
-
- if(!email){
-  authMessage("پہلے Email address لکھیں۔");
-  return;
- }
-
- try{
-  await sendPasswordResetEmail(auth,email);
-  authMessage("Password reset link آپ کے Email پر بھیج دیا گیا ہے۔",false);
- }catch(error){
-  authMessage(error.message);
- }
-});
-
-/* RESEND VERIFICATION */
-$("resendButton").addEventListener("click", async () => {
- if(!auth.currentUser) return;
-
- try{
-  await sendEmailVerification(auth.currentUser);
-  verifyMessage("Verification email دوبارہ بھیج دیا گیا ہے۔",false);
- }catch(error){
-  verifyMessage(error.message);
- }
-});
-
-/* CHECK EMAIL VERIFICATION */
-$("verifiedButton").addEventListener("click", async () => {
- try{
-  if(!auth.currentUser) return;
-
-  await reload(auth.currentUser);
-
-  if(auth.currentUser.emailVerified){
-   showChat(auth.currentUser);
-  }else{
-   verifyMessage("ابھی Email verify نہیں ہوا۔ اپنے Inbox میں لنک کھولیں۔");
-  }
- }catch(error){
-  verifyMessage(error.message);
- }
-});
-
-/* CHAT STORAGE */
-function storageKey(){
- return "elyx_chats_" + currentUser.uid;
+$("chat").scrollTop=$("chat").scrollHeight;
 }
-
-function newChatObject(){
- return {
-  id: String(Date.now()) + Math.random().toString(16).slice(2),
-  title: "New Chat",
-  messages: []
- };
-}
-
-function saveChats(){
- try{
-  localStorage.setItem(storageKey(),JSON.stringify(chats));
-  localStorage.setItem(storageKey()+"_active",activeChatId || "");
- }catch(error){
-  console.error(error);
- }
-}
-
 function loadChats(){
- try{
-  chats = JSON.parse(localStorage.getItem(storageKey()) || "[]");
-
-  if(!Array.isArray(chats)) chats = [];
-
-  const savedId = localStorage.getItem(storageKey()+"_active");
-
-  if(savedId && chats.some(c => c.id === savedId)){
-   activeChatId = savedId;
-  }else{
-   activeChatId = null;
-  }
- }catch(error){
-  chats = [];
-  activeChatId = null;
- }
-
- if(!chats.length){
-  const item = newChatObject();
-  chats.push(item);
-  activeChatId = item.id;
- }
-
- if(!chats.some(c => c.id === activeChatId)){
-  activeChatId = chats[0].id;
- }
-
- saveChats();
+chats=JSON.parse(localStorage.getItem(key())||"[]");
+if(!chats.length){
+const old=JSON.parse(localStorage.getItem("elyx_chats_v1")||"[]");
+chats=Array.isArray(old)?old:[];
+}
+if(!chats.length)chats=[{title:"New Chat",messages:[]}];
+active=0;save();display();
 }
 
-function activeChat(){
- return chats.find(c => c.id === activeChatId);
+window.signup=async()=>{
+try{
+const c=await createUserWithEmailAndPassword(auth,$("email").value,$("pass").value);
+await sendEmailVerification(c.user);
+$("status").textContent="Verification email sent. Verify your email, then login.";
+await signOut(auth);
+}catch(e){$("status").textContent=e.message}
+};
+
+window.login=async()=>{
+try{
+const c=await signInWithEmailAndPassword(auth,$("email").value,$("pass").value);
+if(!c.user.emailVerified){
+await sendEmailVerification(c.user);
+await signOut(auth);
+$("status").textContent="Please verify your email first. Verification email sent.";
 }
+}catch(e){$("status").textContent=e.message}
+};
 
-function addMessage(text,role){
- const div = document.createElement("div");
- div.className = "message " + (role === "user" ? "user" : "bot");
- div.textContent = text;
- $("chat").appendChild(div);
- $("chat").scrollTop = $("chat").scrollHeight;
- return div;
+window.resetPass=async()=>{
+try{
+await sendPasswordResetEmail(auth,$("email").value);
+$("status").textContent="Password reset email sent.";
+}catch(e){$("status").textContent=e.message}
+};
+
+onAuthStateChanged(auth,async u=>{
+if(u&&u.emailVerified){
+user=u;$("auth").classList.add("hidden");
+$("app").classList.remove("hidden");
+$("welcome").textContent="Logged in: "+u.email;
+loadChats();
+}else{
+user=null;$("auth").classList.remove("hidden");
+$("app").classList.add("hidden");
 }
-
-function displayChat(){
- $("chat").innerHTML = "";
-
- addMessage(
-  "Assalam-o-Alaikum! I am ELYX.\n\nمیں آپ کا ذاتی AI اسسٹنٹ ہوں۔ مجھ سے بات کریں!",
-  "bot"
- );
-
- const current = activeChat();
-
- if(current){
-  current.messages.forEach(item => addMessage(item.text,item.role));
- }
-}
-
-/* SHOW CHAT AFTER VERIFIED LOGIN */
-function showChat(user){
- currentUser = user;
- loadChats();
- $("accountEmail").textContent = "Logged in: " + user.email;
- showScreen("chatScreen");
- displayChat();
- status("AI SYSTEM ONLINE");
-}
-
-/* SEND MESSAGE TO AUTHENTICATED BACKEND */
-async function askELYX(message,history){
- const token = await currentUser.getIdToken(true);
-
- const response = await fetch(WORKER_URL,{
-  method:"POST",
-  headers:{
-   "Content-Type":"application/json",
-   "Authorization":"Bearer " + token
-  },
-  body:JSON.stringify({
-   message:message,
-   history:history.slice(-16)
-  })
- });
-
- let data;
-
- try{
-  data = await response.json();
- }catch(error){
-  throw new Error("Backend نے درست جواب نہیں دیا۔ دوبارہ کوشش کریں۔");
- }
-
- if(!response.ok){
-  throw new Error(data.reply || data.error || "AI request failed.");
- }
-
- if(!data.reply || typeof data.reply !== "string"){
-  throw new Error("ELYX کو جواب موصول نہیں ہوا۔");
- }
-
- return data.reply;
-}
-
-/* CHAT FORM */
-$("chatForm").addEventListener("submit",async event => {
- event.preventDefault();
-
- const message = $("messageInput").value.trim();
- if(!message || busy || !currentUser) return;
-
- const current = activeChat();
- if(!current) return;
-
- busy = true;
- $("sendButton").disabled = true;
-
- $("messageInput").value = "";
- addMessage(message,"user");
-
- const thinking = addMessage("ELYX سوچ رہا ہے...","bot");
- status("THINKING");
-
- try{
-  const reply = await askELYX(message,current.messages);
-
-  thinking.textContent = reply;
-
-  current.messages.push(
-   {role:"user",text:message},
-   {role:"model",text:reply}
-  );
-
-  current.messages = current.messages.slice(-16);
-
-  if(current.title === "New Chat"){
-   current.title = message.slice(0,35);
-  }
-
-  saveChats();
-  status("AI SYSTEM ONLINE");
-
- }catch(error){
-  thinking.textContent = "معاف کریں، جواب حاصل نہیں ہو سکا۔\n" + error.message;
-  status("CONNECTION ERROR");
-  console.error(error);
- }finally{
-  busy = false;
-  $("sendButton").disabled = false;
-  $("messageInput").focus();
- }
 });
 
-/* NEW CHAT */
-$("newChat").addEventListener("click",() => {
- if(busy) return;
+window.logout=()=>{stopVoice();signOut(auth)};
 
- const item = newChatObject();
- chats.push(item);
- activeChatId = item.id;
- saveChats();
- displayChat();
+window.newChat=()=>{
+chats.unshift({title:"New Chat",messages:[]});
+active=0;save();display();showHistory();
+};
+
+window.clearChat=()=>{
+chats[active].messages=[];
+chats[active].title="New Chat";
+save();display();showHistory();
+};
+
+window.showHistory=()=>{
+const h=$("history");
+h.classList.toggle("hidden");
+h.innerHTML="";
+chats.forEach((c,i)=>{
+const b=document.createElement("button");
+b.textContent=c.title||"Chat "+(i+1);
+b.onclick=()=>{active=i;display();h.classList.add("hidden")};
+h.appendChild(b);
 });
+};
 
-/* CLEAR CURRENT CHAT */
-$("clearChat").addEventListener("click",() => {
- if(busy) return;
-
- if(!confirm("کیا آپ اس گفتگو کو ختم کرنا چاہتے ہیں؟")) return;
-
- const item = activeChat();
- if(item) item.messages = [];
-
- saveChats();
- displayChat();
+async function send(text=null,fromVoice=false){
+const input=$("message");
+text=(text||input.value).trim();
+if(!text||busy)return;
+input.value="";
+busy=true;
+chats[active].messages.push({role:"user",text});
+if(chats[active].title==="New Chat")
+chats[active].title=text.slice(0,28);
+save();display();
+try{
+const token=await user.getIdToken(true);
+const history=chats[active].messages.slice(-20);
+const response=await fetch(WORKER,{
+method:"POST",
+headers:{"Content-Type":"application/json","Authorization":"Bearer "+token},
+body:JSON.stringify({message:text,history})
 });
-
-/* LOGOUT */
-async function logout(){
- try{
-  await signOut(auth);
- }catch(error){
-  console.error(error);
- }
+const data=await response.json();
+if(!response.ok)throw Error(data.error||data.reply||"AI request failed");
+const reply=data.reply||"Sorry, no reply received.";
+chats[active].messages.push({role:"model",text:reply});
+save();display();
+if(fromVoice&&voiceOn)speak(reply);
+else busy=false;
+}catch(e){
+chats[active].messages.push({role:"model",text:"معاف کریں: "+e.message});
+save();display();busy=false;
+if(voiceOn)setTimeout(startListening,700);
 }
+}
+window.send=()=>send();
 
-$("logoutButton").addEventListener("click",logout);
-$("verifyLogout").addEventListener("click",logout);
+function startListening(){
+if(!voiceOn||busy||!recognition)return;
+try{recognition.start();$("voiceStatus").textContent="Listening..."}catch(e){}
+}
+function stopVoice(){
+voiceOn=false;busy=false;
+if(recognition)try{recognition.stop()}catch(e){}
+speechSynthesis.cancel();
+$("voiceBtn").textContent="Start Voice";
+$("voiceStatus").textContent="Voice stopped";
+}
+window.toggleVoice=()=>{
+if(voiceOn){stopVoice();return}
+if(!Speech){
+$("voiceStatus").textContent="Voice recognition is not supported. Try Chrome.";
+return;
+}
+voiceOn=true;
+recognition=new Speech();
+recognition.continuous=false;
+recognition.interimResults=false;
+recognition.lang=lang;
+recognition.onresult=e=>{
+const spoken=e.results[0][0].transcript;
+send(spoken,true);
+};
+recognition.onerror=e=>{
+$("voiceStatus").textContent="Microphone error: "+e.error;
+if(e.error==="not-allowed")stopVoice();
+};
+recognition.onend=()=>{
+if(voiceOn&&!busy)setTimeout(startListening,600);
+};
+$("voiceBtn").textContent="Stop Voice";
+startListening();
+};
 
-/* FIREBASE LOGIN STATE */
-onAuthStateChanged(auth,async user => {
- if(!user){
-  currentUser = null;
-  showScreen("authScreen");
-  status("PLEASE LOGIN");
-  return;
- }
-
- try{
-  await reload(user);
-
-  if(!user.emailVerified){
-   $("verifyEmail").textContent = user.email;
-   showScreen("verifyScreen");
-   status("EMAIL VERIFICATION REQUIRED");
-   return;
-  }
-
-  showChat(user);
-
- }catch(error){
-  console.error(error);
-  showScreen("authScreen");
-  authMessage("Account check failed. دوبارہ Login کریں۔");
- }
-});
+function speak(text){
+speechSynthesis.cancel();
+const utterance=new SpeechSynthesisUtterance(text);
+utterance.lang=lang;
+utterance.rate=.95;
+utterance.onend=()=>{
+busy=false;
+if(voiceOn)setTimeout(startListening,500);
+};
+utterance.onerror=()=>{
+busy=false;
+if(voiceOn)setTimeout(startListening,500);
+};
+speechSynthesis.speak(utterance);
+}
+window.changeLanguage=()=>{
+lang=lang==="ur-PK"?"en-US":"ur-PK";
+$("langBtn").textContent=lang==="ur-PK"?"Language: Urdu":"Language: English";
+if(recognition)recognition.lang=lang;
+};
 </script>
 </body>
 </html>
