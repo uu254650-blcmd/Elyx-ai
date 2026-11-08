@@ -3,254 +3,359 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ELYX AI</title>
 <style>
-body{margin:0;background:#07111d;color:white;font-family:Arial;padding:18px}
-main{max-width:650px;margin:auto}h1{color:#00e5ff}
-input,textarea,button{padding:12px;margin:5px 0;border-radius:9px;border:1px solid #234;background:#102235;color:white}
-input,textarea{width:95%}button{cursor:pointer;background:#087e99}
-#chat{height:42vh;overflow:auto;background:#0d1c2b;padding:12px;border-radius:12px}
-.msg{padding:10px;margin:8px 0;border-radius:10px;background:#173047}
-.user{background:#07536a}
-.hidden{display:none}
+*{box-sizing:border-box}
+body{margin:0;background:#050b14;color:#eafaff;font-family:Arial,sans-serif}
+button,input,textarea{font:inherit}
+button{cursor:pointer;border:1px solid #16465a;background:#0b2434;color:#dffaff;border-radius:12px;padding:11px}
+button:hover{background:#104056}
+.hidden{display:none!important}
+.app{max-width:1100px;margin:auto;min-height:100vh;padding:16px}
+header{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #15394a;padding:10px 0}
+.logo{font-size:25px;letter-spacing:5px;color:#42eaff;font-weight:bold}
+.small{font-size:12px;color:#8baebb}
+.layout{display:grid;grid-template-columns:230px 1fr;gap:16px;margin-top:18px}
+.panel{background:#091725;border:1px solid #15394a;border-radius:18px;padding:14px}
+.side button{width:100%;margin:5px 0;text-align:left}
+.orb-area{text-align:center;padding:18px 0}
+.orb{width:145px;height:145px;margin:8px auto 18px;border-radius:50%;background:radial-gradient(circle,#b7ffff 0%,#20dfff 13%,#087caa 38%,#071a32 70%);box-shadow:0 0 25px #00dfff,0 0 65px #007caa;animation:pulse 3s infinite}
+@keyframes pulse{50%{transform:scale(1.06);box-shadow:0 0 45px #00dfff,0 0 90px #007caa}}
+h1{color:#48eaff;letter-spacing:4px}
+.chat{height:48vh;min-height:260px;overflow:auto;padding:12px;background:#06111e;border-radius:14px;border:1px solid #14394b}
+.msg{white-space:pre-wrap;overflow-wrap:anywhere;padding:12px;margin:9px 0;border-radius:13px;background:#10283a;line-height:1.5}
+.user{background:#06465a;margin-left:12%}
+.model{margin-right:12%}
+.composer{display:flex;gap:8px;margin-top:12px}
+textarea{flex:1;resize:vertical;min-height:48px;max-height:150px;background:#0b1d2c;color:white;border:1px solid #1c5268;border-radius:13px;padding:13px}
+.mic{width:52px;height:52px;border-radius:50%;font-size:22px;background:#07536a}
+.mic.active{background:#b02e46;box-shadow:0 0 20px #ff4265}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.row button{margin:3px 0}
+input{width:100%;padding:12px;margin:7px 0;background:#0b1d2c;color:white;border:1px solid #1c5268;border-radius:10px}
+.card{padding:13px;background:#0b1d2c;border:1px solid #174356;border-radius:13px;margin:9px 0}
+.status{color:#81d9e8;font-size:13px;min-height:20px}
+#history button{display:block;width:100%;text-align:left;margin:5px 0}
+@media(max-width:700px){.layout{grid-template-columns:1fr}.side{display:grid;grid-template-columns:1fr 1fr;gap:5px}.side button{font-size:12px}.chat{height:45vh}.orb{width:115px;height:115px}}
 </style>
 </head>
 <body>
-<main>
-<h1>ELYX</h1>
-<p>YOUR PERSONAL AI ASSISTANT</p>
+<div class="app">
+<header>
+ <div><div class="logo">ELYX</div><div class="small">YOUR PERSONAL AI ASSISTANT</div></div>
+ <button id="logoutBtn" class="hidden">Logout</button>
+</header>
 
-<section id="auth">
-<h3>Login / Sign Up</h3>
-<input id="email" type="email" placeholder="Email">
-<input id="pass" type="password" placeholder="Password">
-<button onclick="signup()">Sign Up</button>
-<button onclick="login()">Login</button>
-<button onclick="resetPass()">Forgot Password</button>
-<p id="status"></p>
+<section id="auth" class="panel" style="max-width:440px;margin:45px auto">
+ <h2>Welcome to ELYX</h2>
+ <p class="small">Sign in to continue</p>
+ <input id="email" type="email" placeholder="Email address">
+ <input id="password" type="password" placeholder="Password">
+ <div class="row">
+  <button id="loginBtn">Login</button>
+  <button id="signupBtn">Create Account</button>
+  <button id="resetBtn">Reset Password</button>
+ </div>
+ <p id="authStatus" class="status"></p>
 </section>
 
-<section id="app" class="hidden">
-<p id="welcome"></p>
-<button onclick="logout()">Logout</button>
-<button onclick="newChat()">New Chat</button>
-<button onclick="showHistory()">Chat History</button>
-<button onclick="clearChat()">Clear Chat</button>
-<div id="history" class="hidden"></div>
+<section id="mainApp" class="hidden">
+ <div class="orb-area">
+  <div class="orb"></div>
+  <h1>ELYX</h1>
+  <p class="small">YOUR PERSONAL AI ASSISTANT</p>
+  <p id="welcome" class="status"></p>
+ </div>
 
-<div id="chat"></div>
-<textarea id="message" placeholder="Message ELYX..."></textarea>
-<button onclick="send()">Send</button>
-<button onclick="toggleVoice()" id="voiceBtn">Start Voice</button>
-<button onclick="changeLanguage()" id="langBtn">Language: Urdu</button>
-<p id="voiceStatus"></p>
+ <div class="layout">
+  <aside class="panel side">
+   <button id="newBtn">＋ New Chat</button>
+   <button id="historyBtn">◷ Chat History</button>
+   <button id="memoryBtn">♧ My Memory</button>
+   <button id="profileBtn">◎ My Profile</button>
+   <button id="researchBtn">⌕ AI Research</button>
+   <button id="settingsBtn">⚙ Settings</button>
+   <div id="history" class="hidden"></div>
+  </aside>
+
+  <main class="panel">
+   <div id="chat" class="chat"></div>
+   <div class="composer">
+    <textarea id="message" placeholder="Message ELYX..."></textarea>
+    <button id="micBtn" class="mic" title="Start or stop voice conversation">🎙</button>
+    <button id="sendBtn">➤</button>
+   </div>
+   <div class="row" style="margin-top:9px">
+    <button id="fileBtn">＋ Image / PDF / File</button>
+    <button id="clearBtn">Clear Chat</button>
+    <input id="fileInput" type="file" accept="image/*,.pdf,.txt,.md" class="hidden">
+   </div>
+   <div id="fileStatus" class="status"></div>
+   <div id="voiceStatus" class="status"></div>
+   <div id="extra" class="card hidden"></div>
+  </main>
+ </div>
 </section>
-</main>
+</div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
-import {getAuth,createUserWithEmailAndPassword,signInWithEmailAndPassword,
-sendEmailVerification,sendPasswordResetEmail,signOut,onAuthStateChanged}
-from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+import {
+ getAuth,createUserWithEmailAndPassword,signInWithEmailAndPassword,
+ sendEmailVerification,sendPasswordResetEmail,signOut,onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
 
 const firebaseConfig={
-apiKey:"AIzaSyCvenZuBn-GvzyYYgFJB_klaCDmhNGDkqo",
-authDomain:"elyx-6b1d2.firebaseapp.com",
-projectId:"elyx-6b1d2",
-storageBucket:"elyx-6b1d2.firebasestorage.app",
-messagingSenderId:"11661998394",
-appId:"1:11661998394:web:ebba056d7bab6bcb037803"
+ apiKey:"AIzaSyCvenZuBn-GvzyYYgFJB_klaCDmhNGDkqo",
+ authDomain:"elyx-6b1d2.firebaseapp.com",
+ projectId:"elyx-6b1d2",
+ storageBucket:"elyx-6b1d2.firebasestorage.app",
+ messagingSenderId:"11661998394",
+ appId:"1:11661998394:web:ebba056d7bab6bcb037803"
 };
 
-const appFirebase=initializeApp(firebaseConfig);
-const auth=getAuth(appFirebase);
+const firebase=initializeApp(firebaseConfig);
+const auth=getAuth(firebase);
 const WORKER="https://elyx-ai-backend.uu254650.workers.dev/";
-
-let user=null,chats=[],active=0,busy=false;
-let voiceOn=false,lang="ur-PK";
-const Speech=window.SpeechRecognition||window.webkitSpeechRecognition;
-let recognition=null;
-
 const $=id=>document.getElementById(id);
-const key=()=> "elyx_chats_"+user.uid;
 
-function save(){
-localStorage.setItem(key(),JSON.stringify(chats));
-}
-function display(){
-$("chat").innerHTML="";
-(chats[active]?.messages||[]).forEach(m=>{
-const d=document.createElement("div");
-d.className="msg "+(m.role==="user"?"user":"");
-d.textContent=m.text;
-$("chat").appendChild(d);
-});
-$("chat").scrollTop=$("chat").scrollHeight;
+let user=null,chats=[],active=0,busy=false,voiceOn=false,recognition=null;
+let selectedImage=null;
+
+const IDENTITY_RULES=`
+You are ELYX, an independent personal AI assistant.
+Your exact English name is ELYX. In Urdu script, write your name as ایلیکس.
+Pronounce the name naturally as one name. Never call yourself Alex, Elex, Sitara,
+or spell the name letter by letter.
+If asked to introduce yourself in English, say:
+"Hello! I'm ELYX, your personal AI assistant. I help with questions, learning,
+writing, research and everyday tasks. I use Google Gemini as my AI engine
+to understand requests and generate helpful responses. How can I help you today?"
+If asked in Urdu, say:
+"السلام علیکم! میں ایلیکس ہوں، آپ کا ذاتی AI اسسٹنٹ۔
+میں سوالات کے جواب دینے، سیکھنے، لکھنے، تحقیق اور روزمرہ کاموں میں مدد کرتا ہوں۔
+میں اپنے جوابات تیار کرنے کے لیے Google Gemini کو اپنے AI انجن کے طور پر استعمال کرتا ہوں۔
+آپ جس زبان میں بات کریں گے، میں اسی زبان میں جواب دوں گا۔"
+Never say Google or Gemini created ELYX. Gemini is the AI engine, not ELYX's identity.
+Always answer in the language the user uses. Do not ask the user to select a language.
+`;
+
+const storeKey=()=> "elyx_chats_"+user.uid;
+const memoryKey=()=> "elyx_memory_"+user.uid;
+
+function showStatus(id,msg){$(id).textContent=msg}
+function saveChats(){localStorage.setItem(storeKey(),JSON.stringify(chats))}
+function render(){
+ const box=$("chat");box.innerHTML="";
+ (chats[active]?.messages||[]).forEach(m=>{
+  const d=document.createElement("div");
+  d.className="msg "+(m.role==="user"?"user":"model");
+  d.textContent=m.text;box.appendChild(d);
+ });
+ box.scrollTop=box.scrollHeight;
 }
 function loadChats(){
-chats=JSON.parse(localStorage.getItem(key())||"[]");
-if(!chats.length){
-const old=JSON.parse(localStorage.getItem("elyx_chats_v1")||"[]");
-chats=Array.isArray(old)?old:[];
+ chats=JSON.parse(localStorage.getItem(storeKey())||"[]");
+ if(!chats.length){
+  const old=JSON.parse(localStorage.getItem("elyx_chats_v1")||"[]");
+  chats=Array.isArray(old)?old:[];
+ }
+ if(!chats.length)chats=[{title:"New Chat",messages:[]}];
+ active=0;saveChats();render();
 }
-if(!chats.length)chats=[{title:"New Chat",messages:[]}];
-active=0;save();display();
+function addMessage(role,text){
+ chats[active].messages.push({role,text});
+ if(chats[active].title==="New Chat"&&role==="user")
+  chats[active].title=text.slice(0,35);
+ saveChats();render();
 }
 
-window.signup=async()=>{
-try{
-const c=await createUserWithEmailAndPassword(auth,$("email").value,$("pass").value);
-await sendEmailVerification(c.user);
-$("status").textContent="Verification email sent. Verify your email, then login.";
-await signOut(auth);
-}catch(e){$("status").textContent=e.message}
+$("signupBtn").onclick=async()=>{
+ try{
+  const c=await createUserWithEmailAndPassword(auth,$("email").value,$("password").value);
+  await sendEmailVerification(c.user);await signOut(auth);
+  showStatus("authStatus","Verification email sent. Verify it, then login.");
+ }catch(e){showStatus("authStatus",e.message)}
 };
-
-window.login=async()=>{
-try{
-const c=await signInWithEmailAndPassword(auth,$("email").value,$("pass").value);
-if(!c.user.emailVerified){
-await sendEmailVerification(c.user);
-await signOut(auth);
-$("status").textContent="Please verify your email first. Verification email sent.";
-}
-}catch(e){$("status").textContent=e.message}
+$("loginBtn").onclick=async()=>{
+ try{
+  const c=await signInWithEmailAndPassword(auth,$("email").value,$("password").value);
+  if(!c.user.emailVerified){
+   await sendEmailVerification(c.user);await signOut(auth);
+   showStatus("authStatus","Please verify your email. A new email was sent.");
+  }
+ }catch(e){showStatus("authStatus",e.message)}
 };
-
-window.resetPass=async()=>{
-try{
-await sendPasswordResetEmail(auth,$("email").value);
-$("status").textContent="Password reset email sent.";
-}catch(e){$("status").textContent=e.message}
+$("resetBtn").onclick=async()=>{
+ try{await sendPasswordResetEmail(auth,$("email").value);showStatus("authStatus","Password reset email sent.");}
+ catch(e){showStatus("authStatus",e.message)}
 };
-
-onAuthStateChanged(auth,async u=>{
-if(u&&u.emailVerified){
-user=u;$("auth").classList.add("hidden");
-$("app").classList.remove("hidden");
-$("welcome").textContent="Logged in: "+u.email;
-loadChats();
-}else{
-user=null;$("auth").classList.remove("hidden");
-$("app").classList.add("hidden");
-}
+$("logoutBtn").onclick=()=>{stopVoice();signOut(auth)};
+onAuthStateChanged(auth,u=>{
+ if(u&&u.emailVerified){
+  user=u;$("auth").classList.add("hidden");$("mainApp").classList.remove("hidden");
+  $("logoutBtn").classList.remove("hidden");$("welcome").textContent="Signed in";
+  loadChats();
+ }else{
+  user=null;$("auth").classList.remove("hidden");$("mainApp").classList.add("hidden");
+  $("logoutBtn").classList.add("hidden");
+ }
 });
 
-window.logout=()=>{stopVoice();signOut(auth)};
-
-window.newChat=()=>{
-chats.unshift({title:"New Chat",messages:[]});
-active=0;save();display();showHistory();
+$("newBtn").onclick=()=>{
+ chats.unshift({title:"New Chat",messages:[]});active=0;saveChats();render();
 };
-
-window.clearChat=()=>{
-chats[active].messages=[];
-chats[active].title="New Chat";
-save();display();showHistory();
+$("clearBtn").onclick=()=>{
+ if(!confirm("Clear this conversation?"))return;
+ chats[active].messages=[];chats[active].title="New Chat";saveChats();render();
 };
-
-window.showHistory=()=>{
-const h=$("history");
-h.classList.toggle("hidden");
-h.innerHTML="";
-chats.forEach((c,i)=>{
-const b=document.createElement("button");
-b.textContent=c.title||"Chat "+(i+1);
-b.onclick=()=>{active=i;display();h.classList.add("hidden")};
-h.appendChild(b);
-});
+$("historyBtn").onclick=()=>{
+ const h=$("history");h.classList.toggle("hidden");h.innerHTML="";
+ chats.forEach((c,i)=>{
+  const b=document.createElement("button");b.textContent=c.title||"Chat "+(i+1);
+  b.onclick=()=>{active=i;render();h.classList.add("hidden")};h.appendChild(b);
+ });
 };
 
 async function send(text=null,fromVoice=false){
-const input=$("message");
-text=(text||input.value).trim();
-if(!text||busy)return;
-input.value="";
-busy=true;
-chats[active].messages.push({role:"user",text});
-if(chats[active].title==="New Chat")
-chats[active].title=text.slice(0,28);
-save();display();
-try{
-const token=await user.getIdToken(true);
-const history=chats[active].messages.slice(-20);
-const response=await fetch(WORKER,{
-method:"POST",
-headers:{"Content-Type":"application/json","Authorization":"Bearer "+token},
-body:JSON.stringify({message:text,history})
+ text=(text??$("message").value).trim();
+ if(!text||busy)return;
+ $("message").value="";busy=true;
+ addMessage("user",text);
+ try{
+  const token=await user.getIdToken(true);
+  const history=chats[active].messages.slice(-20);
+  const response=await fetch(WORKER,{
+   method:"POST",
+   headers:{"Content-Type":"application/json","Authorization":"Bearer "+token},
+   body:JSON.stringify({
+    message:IDENTITY_RULES+"\n\nUser message:\n"+text,
+    history
+   })
+  });
+  const data=await response.json();
+  if(!response.ok)throw Error(data.error||data.reply||"AI request failed");
+  const reply=data.reply||"No reply received.";
+  addMessage("model",reply);
+  if(fromVoice&&voiceOn){speak(reply);return}
+ }catch(e){
+  addMessage("model","معاف کیجیے، ابھی رابطہ نہیں ہو سکا۔ "+e.message);
+ }
+ busy=false;
+ if(fromVoice&&voiceOn)setTimeout(startListening,700);
+}
+$("sendBtn").onclick=()=>send();
+$("message").addEventListener("keydown",e=>{
+ if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();send()}
 });
-const data=await response.json();
-if(!response.ok)throw Error(data.error||data.reply||"AI request failed");
-const reply=data.reply||"Sorry, no reply received.";
-chats[active].messages.push({role:"model",text:reply});
-save();display();
-if(fromVoice&&voiceOn)speak(reply);
-else busy=false;
-}catch(e){
-chats[active].messages.push({role:"model",text:"معاف کریں: "+e.message});
-save();display();busy=false;
-if(voiceOn)setTimeout(startListening,700);
-}
-}
-window.send=()=>send();
 
 function startListening(){
-if(!voiceOn||busy||!recognition)return;
-try{recognition.start();$("voiceStatus").textContent="Listening..."}catch(e){}
+ if(!voiceOn||busy||!recognition)return;
+ try{recognition.start();showStatus("voiceStatus","Listening...")}
+ catch(e){}
 }
 function stopVoice(){
-voiceOn=false;busy=false;
-if(recognition)try{recognition.stop()}catch(e){}
-speechSynthesis.cancel();
-$("voiceBtn").textContent="Start Voice";
-$("voiceStatus").textContent="Voice stopped";
+ voiceOn=false;
+ if(recognition){recognition.onend=null;try{recognition.stop()}catch(e){}}
+ speechSynthesis.cancel();
+ $("micBtn").classList.remove("active");
+ showStatus("voiceStatus","Voice conversation stopped.");
 }
-window.toggleVoice=()=>{
-if(voiceOn){stopVoice();return}
-if(!Speech){
-$("voiceStatus").textContent="Voice recognition is not supported. Try Chrome.";
-return;
+$("micBtn").onclick=()=>{
+ if(voiceOn){stopVoice();return}
+ const Speech=window.SpeechRecognition||window.webkitSpeechRecognition;
+ if(!Speech){showStatus("voiceStatus","Voice recognition is not supported. Try Chrome.");return}
+ voiceOn=true;recognition=new Speech();
+ recognition.continuous=false;recognition.interimResults=false;
+ recognition.lang=(navigator.language||"en-US").toLowerCase().startsWith("ur")?"ur-PK":"en-US";
+ recognition.onresult=e=>{
+  const spoken=e.results[0][0].transcript;
+  send(spoken,true);
+ };
+ recognition.onerror=e=>{
+  showStatus("voiceStatus","Microphone: "+e.error);
+  if(e.error==="not-allowed")stopVoice();
+ };
+ recognition.onend=()=>{if(voiceOn&&!busy)setTimeout(startListening,600)};
+ $("micBtn").classList.add("active");startListening();
+};
+function speak(text){
+ speechSynthesis.cancel();
+ const u=new SpeechSynthesisUtterance(text);
+ u.lang=/[\u0600-\u06FF]/.test(text)?"ur-PK":"en-US";
+ u.rate=.95;
+ u.onend=()=>{busy=false;if(voiceOn)setTimeout(startListening,500)};
+ u.onerror=()=>{busy=false;if(voiceOn)setTimeout(startListening,500)};
+ speechSynthesis.speak(u);
 }
-voiceOn=true;
-recognition=new Speech();
-recognition.continuous=false;
-recognition.interimResults=false;
-recognition.lang=lang;
-recognition.onresult=e=>{
-const spoken=e.results[0][0].transcript;
-send(spoken,true);
+
+// Personal memory stored on this device only
+$("memoryBtn").onclick=()=>{
+ const box=$("extra");box.classList.remove("hidden");
+ const memories=JSON.parse(localStorage.getItem(memoryKey())||"[]");
+ box.innerHTML="<b>My Memory — This device only</b><p class='small'>Add information you want ELYX to remember.</p>";
+ const input=document.createElement("input");input.placeholder="Write a memory...";
+ const add=document.createElement("button");add.textContent="Save Memory";
+ const list=document.createElement("div");
+ function draw(){
+  list.innerHTML="";
+  memories.forEach((m,i)=>{
+   const line=document.createElement("div");line.className="row";
+   const t=document.createElement("span");t.textContent=m;t.style.flex="1";
+   const del=document.createElement("button");del.textContent="Delete";
+   del.onclick=()=>{memories.splice(i,1);localStorage.setItem(memoryKey(),JSON.stringify(memories));draw()};
+   line.append(t,del);list.append(line);
+  });
+ }
+ add.onclick=()=>{
+  if(!input.value.trim())return;
+  memories.push(input.value.trim());localStorage.setItem(memoryKey(),JSON.stringify(memories));
+  input.value="";draw();
+ };
+ box.append(input,add,list);draw();
 };
-recognition.onerror=e=>{
-$("voiceStatus").textContent="Microphone error: "+e.error;
-if(e.error==="not-allowed")stopVoice();
+$("profileBtn").onclick=()=>{
+ const box=$("extra");box.classList.remove("hidden");
+ box.textContent="Account: "+(user?.email||"Not signed in");
 };
-recognition.onend=()=>{
-if(voiceOn&&!busy)setTimeout(startListening,600);
-};
-$("voiceBtn").textContent="Stop Voice";
-startListening();
+$("settingsBtn").onclick=()=>{
+ const box=$("extra");box.classList.remove("hidden");
+ box.textContent="ELYX Settings. Voice uses your browser's available speech recognition and speech voices.";
 };
 
-function speak(text){
-speechSynthesis.cancel();
-const utterance=new SpeechSynthesisUtterance(text);
-utterance.lang=lang;
-utterance.rate=.95;
-utterance.onend=()=>{
-busy=false;
-if(voiceOn)setTimeout(startListening,500);
+// File selection: text and PDF extraction; image preview only until image-analysis backend is connected
+$("fileBtn").onclick=()=>$("fileInput").click();
+$("fileInput").onchange=async e=>{
+ const file=e.target.files[0];if(!file)return;
+ showStatus("fileStatus","Reading "+file.name+"...");
+ try{
+  if(file.type.startsWith("image/")){
+   selectedImage=URL.createObjectURL(file);
+   showStatus("fileStatus","Image selected. Image analysis needs the next backend upgrade.");
+  }else if(file.type==="text/plain"||file.name.endsWith(".md")){
+   const content=await file.text();$("message").value+="\n\nFile: "+file.name+"\n"+content;
+   showStatus("fileStatus","Text file loaded into message.");
+  }else if(file.type==="application/pdf"&&window.pdfjsLib){
+   pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+   const pdf=await pdfjsLib.getDocument(await file.arrayBuffer()).promise;
+   let content="";
+   for(let p=1;p<=Math.min(pdf.numPages,12);p++){
+    const page=await pdf.getPage(p);const data=await page.getTextContent();
+    content+=data.items.map(x=>x.str).join(" ")+"\n";
+   }
+   $("message").value+="\n\nPDF: "+file.name+"\n"+content;
+   showStatus("fileStatus","PDF text loaded. Review it, then press Send.");
+  }else showStatus("fileStatus","This file type is not supported yet.");
+ }catch(err){showStatus("fileStatus","File error: "+err.message)}
+ e.target.value="";
 };
-utterance.onerror=()=>{
-busy=false;
-if(voiceOn)setTimeout(startListening,500);
-};
-speechSynthesis.speak(utterance);
-}
-window.changeLanguage=()=>{
-lang=lang==="ur-PK"?"en-US":"ur-PK";
-$("langBtn").textContent=lang==="ur-PK"?"Language: Urdu":"Language: English";
-if(recognition)recognition.lang=lang;
+
+// These features need backend / Android integration before they can work.
+$("researchBtn").onclick=()=>{
+ const box=$("extra");box.classList.remove("hidden");
+ box.textContent="AI Research Agent: live web search and source citations require the Research Backend upgrade. Not connected yet.";
 };
 </script>
 </body>
